@@ -326,7 +326,7 @@ async function api(body){
 }
 function writeErr(err){
   const c = err && err.code;
-  if(c==="pin") return "관리자 비밀번호가 맞지 않아요. 다시 로그인해 주세요.";
+  if(c==="pin") return "비밀번호가 맞지 않아요. 다시 확인해 주세요.";
   if(c==="empty") return "칭찬 이유를 적어 주세요.";
   return "저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.";
 }
@@ -342,12 +342,12 @@ function renderMode(){
   const m = $("mode"), a = $("admin");
   if(!API_URL){ m.hidden = true; a.innerHTML = ""; return; }
   m.hidden = false;
-  m.textContent = canWrite ? "관리자" : "조회 전용";
+  m.textContent = canWrite ? "도장 찍는 사람" : "조회 전용";
   if(canWrite){
-    a.innerHTML = `<button class="linkbtn" id="logout">관리자 로그아웃</button>`;
+    a.innerHTML = `<button class="linkbtn" id="logout">이 기기에서 도장 찍기 끄기</button>`;
     $("logout").onclick = () => { pin = ""; try{localStorage.removeItem(PIN_KEY);}catch(e){} canWrite = false; panel = null; editingDate = false; render(); renderMode(); };
   } else if(a.dataset.open === "1"){
-    a.innerHTML = `<form class="pinform" id="pinform"><label for="pinIn">관리자 비밀번호</label><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" required><button class="primary" id="pinBtn">로그인</button><button type="button" class="ghost" id="pinCancel">취소</button></form>`;
+    a.innerHTML = `<form class="pinform" id="pinform"><label for="pinIn">도장 비밀번호를 넣어 주세요</label><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" required><button class="primary" id="pinBtn">확인</button><button type="button" class="ghost" id="pinCancel">취소</button></form>`;
     $("pinCancel").onclick = () => { a.dataset.open = ""; renderMode(); };
     $("pinform").onsubmit = async e => {
       e.preventDefault(); const v = $("pinIn").value.trim(); if(!v) return;
@@ -355,12 +355,12 @@ function renderMode(){
       try{
         await api({action:"check", pin:v});
         pin = v; try{localStorage.setItem(PIN_KEY, v);}catch(e){}
-        canWrite = true; a.dataset.open = ""; render(); renderMode(); toast("관리자로 로그인했어요");
+        canWrite = true; a.dataset.open = ""; render(); renderMode(); toast("이제 칭찬 도장을 찍을 수 있어요");
       }catch(err){ $("pinBtn").disabled = false; toast(writeErr(err)); }
     };
     setTimeout(()=>$("pinIn").focus(), 0);
   } else {
-    a.innerHTML = `<button class="linkbtn" id="login">관리자 로그인</button>`;
+    a.innerHTML = `<button class="linkbtn" id="login">칭찬 도장 찍는 사람이에요</button>`;
     $("login").onclick = () => { a.dataset.open = "1"; renderMode(); };
   }
 }
