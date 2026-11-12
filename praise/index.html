@@ -87,7 +87,11 @@ h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
 .compose{display:flex;flex-direction:column;gap:10px;background:var(--bg);border-radius:16px;padding:14px}
 .compose label{font-size:14px}
 .compose textarea{width:100%;min-height:72px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);font:inherit;color:var(--ink)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px}
+.tab{border:0;background:transparent;color:var(--muted);border-radius:99px;padding:5px 12px;font-size:13px;white-space:nowrap;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{cursor:pointer}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 11px;font-size:13px}
 .row{display:flex;gap:8px}
 .row .primary{flex:1}
@@ -163,7 +167,14 @@ h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
 
 <script>
 const PER = 30;
-const PRESETS = ["밥 잘 챙겨 먹었어","일찍 일어났어","과제 끝냈어","운동 다녀왔어","먼저 연락해줬어","힘든 하루 잘 버텼어"];
+const PRESETS = {
+  "생활": ["밥 잘 챙겨 먹었어","일찍 일어났어","제때 잠들었어","방 청소했어","빨래 다 했어","장 보고 왔어","물 많이 마셨어","알람 듣고 바로 일어났어"],
+  "공부·일": ["과제 끝냈어","수업 다 들었어","발표 잘 해냈어","시험 공부했어","토익 공부했어","자소서 한 문단 썼어","미뤄둔 일 처리했어","마감 지켰어"],
+  "건강": ["운동 다녀왔어","오래 걸었어","스트레칭했어","영양제 챙겨 먹었어","야식 참았어","병원 잘 다녀왔어"],
+  "마음": ["힘든 하루 잘 버텼어","속상한 일 털어놨어","스스로 칭찬해줬어","새로운 거 도전했어","화 안 내고 넘겼어","쉬어야 할 때 잘 쉬었어"],
+  "우리": ["먼저 연락해줬어","보고 싶다고 말해줬어","고맙다고 말해줬어","약속 시간 잘 지켰어","내 얘기 잘 들어줬어","깜짝 선물 줬어"]
+};
+let presetGroup = "생활";
 const $ = id => document.getElementById(id);
 let stamps = [];           // [{id, reason, at}]
 let startDate = "";        // YYYY-MM-DD
@@ -236,7 +247,8 @@ function render(){
     p.innerHTML=`<form class="compose" id="cform">
       <label for="reason">어떤 점을 칭찬할까요?</label>
       <textarea id="reason" maxlength="120" placeholder="예: 바쁜데도 밥 잘 챙겨 먹었어" required></textarea>
-      <div class="chips">${PRESETS.map(t=>`<button type="button" class="chip">${t}</button>`).join("")}</div>
+      <div class="tabs" role="tablist">${Object.keys(PRESETS).map(g=>`<button type="button" class="tab" role="tab" aria-selected="${g===presetGroup}" data-g="${g}">${g}</button>`).join("")}</div>
+      <div class="chips" id="chips">${PRESETS[presetGroup].map(t=>`<button type="button" class="chip">${t}</button>`).join("")}</div>
       <div class="hint"><span id="len">0</span> / 120</div>
       <div class="row"><button type="button" class="ghost" id="ccancel">취소</button><button class="primary" id="csave">도장 꾹</button></div>
     </form>`;
@@ -244,7 +256,9 @@ function render(){
     try{ta.value=localStorage.getItem("yeon-draft")||"";}catch(e){}
     $("len").textContent=ta.value.length;
     ta.oninput=()=>{$("len").textContent=ta.value.length;try{localStorage.setItem("yeon-draft",ta.value);}catch(e){}};
-    p.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ta.value=c.textContent;ta.oninput();ta.focus();});
+    const bindChips=()=>p.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ta.value=c.textContent;ta.oninput();ta.focus();});
+    bindChips();
+    p.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{presetGroup=t.dataset.g;p.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",String(x===t)));$("chips").innerHTML=PRESETS[presetGroup].map(v=>`<button type="button" class="chip">${v}</button>`).join("");bindChips();});
     $("ccancel").onclick=()=>{panel=null;render();};
     $("cform").onsubmit=async e=>{
       e.preventDefault();const r=ta.value.trim();if(!r)return;
