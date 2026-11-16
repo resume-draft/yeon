@@ -8,123 +8,130 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* 배치: 왼쪽 입력(리뷰 캡처 + 사장님 한 줄), 오른쪽 결과(수정 + 기준 체크 + 복사). 폰에서는 한 줄로 쌓고 복사 버튼은 하단 고정. */
+/* 모바일 우선, 50대 사장님용: 한 줄로 차례대로, 큰 글씨(18px), 큰 버튼(최소 56px), 진한 대비. 복사 버튼은 화면 아래 고정. */
 :root {
-  --bg: #f3f4f1;
+  --bg: #f2f3f0;
   --surface: #ffffff;
-  --ink: #1c2420;
-  --muted: #5d6862;
-  --line: #d9ddd7;
-  --accent: #d9412b;
-  --accent-soft: #fbe9e5;
-  --good: #1f7a4d;
-  --good-soft: #e3f2ea;
-  --warn: #9a6400;
-  --warn-soft: #fbf0d9;
-  --bad: #b3261e;
-  --bad-soft: #fbe4e2;
+  --ink: #15201b;
+  --muted: #4a5650;
+  --line: #c9cfc9;
+  --accent: #c8361f;
+  --accent-soft: #fdebe7;
+  --good: #17683f;
+  --good-soft: #e1f2e8;
+  --warn: #8a5a00;
+  --warn-soft: #fbefd6;
+  --bad: #a8231b;
+  --bad-soft: #fbe3e1;
   --font-display: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
   --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #141816; --surface: #1d2320; --ink: #e9ece8; --muted: #a2aca6; --line: #333b37;
-    --accent: #f0664f; --accent-soft: #3a211c;
-    --good: #5cc28e; --good-soft: #17301f; --warn: #e3b04b; --warn-soft: #33290f; --bad: #f08a80; --bad-soft: #3b1d1a;
+    --bg: #121614; --surface: #1c2220; --ink: #f0f2ef; --muted: #b8c1bb; --line: #3a433f;
+    --accent: #f26a52; --accent-soft: #3d221d;
+    --good: #6bd09b; --good-soft: #173022; --warn: #e8b85a; --warn-soft: #352a10; --bad: #f4948a; --bad-soft: #3d1e1b;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #141816; --surface: #1d2320; --ink: #e9ece8; --muted: #a2aca6; --line: #333b37;
-  --accent: #f0664f; --accent-soft: #3a211c;
-  --good: #5cc28e; --good-soft: #17301f; --warn: #e3b04b; --warn-soft: #33290f; --bad: #f08a80; --bad-soft: #3b1d1a;
+  --bg: #121614; --surface: #1c2220; --ink: #f0f2ef; --muted: #b8c1bb; --line: #3a433f;
+  --accent: #f26a52; --accent-soft: #3d221d;
+  --good: #6bd09b; --good-soft: #173022; --warn: #e8b85a; --warn-soft: #352a10; --bad: #f4948a; --bad-soft: #3d1e1b;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 120px; display: grid; gap: 16px; }
-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
-h1 { font-family: var(--font-display); font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+html, body { margin: 0; -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 18px; line-height: 1.7; word-break: keep-all; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 18px 16px 150px; display: grid; gap: 18px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 30px; line-height: 1.2; margin: 0; }
 h1 span { color: var(--accent); }
-.lede { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
-h2 { font-family: var(--font-display); font-size: 17px; margin: 0; display: flex; align-items: center; gap: 8px; text-wrap: balance; }
-.num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 12px; font-family: var(--font-display); }
-.cols { display: grid; gap: 16px; }
-@media (min-width: 960px) { .cols { grid-template-columns: 1fr 1.1fr; align-items: start; } .result { position: sticky; top: 16px; } }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; }
-.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-.chip.type { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 700; }
-label { font-size: 13px; font-weight: 500; color: var(--muted); display: block; margin-bottom: 4px; }
+.lede { margin: 6px 0 0; color: var(--muted); font-size: 17px; }
+h2 { font-family: var(--font-display); font-size: 22px; line-height: 1.35; margin: 0; display: flex; align-items: center; gap: 10px; }
+.num { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 18px; font-family: var(--font-display); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px; display: grid; gap: 14px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.help { margin: 0; color: var(--muted); font-size: 17px; }
+.chip { font-size: 15px; padding: 3px 12px; border-radius: 999px; white-space: nowrap; }
+.chip.type { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+label { font-size: 17px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 6px; }
+.field-help { display: block; font-size: 15px; font-weight: 400; color: var(--muted); margin-top: -2px; margin-bottom: 6px; }
 input[type="text"], input[type="number"], input[type="password"], select, textarea {
-  width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  width: 100%; font: inherit; font-size: 18px; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 52px;
 }
-textarea { resize: vertical; }
-input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, .drop:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
-.drop {
-  border: 1.5px dashed var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; justify-items: center; text-align: center;
-  color: var(--muted); font-size: 14px; cursor: pointer; background: var(--bg);
-}
+textarea { resize: vertical; line-height: 1.7; }
+::placeholder { color: var(--muted); opacity: .85; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, .drop:focus-visible, summary:focus-visible, .pick:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+button, .pick { font: inherit; font-size: 18px; cursor: pointer; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); padding: 12px 16px; min-height: 56px; touch-action: manipulation; }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; font-size: 20px; width: 100%; min-height: 62px; }
+.ghost { background: transparent; }
+.small { font-size: 16px; min-height: 44px; padding: 8px 14px; }
+.pick { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 66px; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; font-size: 21px; }
+.pick svg { width: 26px; height: 26px; }
+.drop { border: 2px dashed var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; justify-items: center; text-align: center; color: var(--muted); font-size: 16px; background: var(--bg); }
 .drop.over { border-color: var(--accent); background: var(--accent-soft); }
-.drop strong { color: var(--ink); }
-.drop img { max-width: 100%; max-height: 260px; border-radius: 6px; border: 1px solid var(--line); }
-.drop .kbd { font-family: var(--font-display); font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--surface); }
+.drop strong { color: var(--ink); font-size: 18px; }
 .thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .thumbs[hidden] { display: none; }
-.thumbs img { max-height: 200px; max-width: 46%; }
-.readout { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
-.readout summary { cursor: pointer; font-weight: 700; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
-.readout-body { display: grid; gap: 12px; padding: 10px 0 4px; }
-.share-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.share-row[hidden] { display: none; }
-.suggest { display: flex; flex-wrap: wrap; gap: 6px; }
+.thumbs img { max-height: 220px; max-width: 46%; border-radius: 8px; border: 1px solid var(--line); }
+.status { font-size: 17px; color: var(--muted); min-height: 1.5em; }
+.status:empty { display: none; }
+.status.err { color: var(--bad); font-weight: 700; }
+.status.ok { color: var(--good); font-weight: 700; }
+details.readout { border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 14px; }
+details.readout > summary, details.settings > summary { cursor: pointer; font-weight: 700; font-size: 18px; min-height: 52px; display: flex; align-items: center; gap: 8px; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--accent); font-size: 20px; }
+details[open] > summary::before { content: "▾"; }
+.readout-body { display: grid; gap: 16px; padding: 6px 0 14px; }
+.suggest { display: grid; gap: 8px; }
 .suggest:empty { display: none; }
-.suggest button { font-size: 13px; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); border-color: transparent; color: var(--ink); text-align: left; }
-.suggest button:hover:not(:disabled) { border-color: var(--accent); }
-.status { font-size: 13px; color: var(--muted); min-height: 1.4em; }
-.status.err { color: var(--bad); }
-.status.ok { color: var(--good); }
-button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px; }
-button:hover:not(:disabled) { border-color: var(--ink); }
-button:disabled { opacity: .5; cursor: not-allowed; }
-.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; padding: 12px 18px; font-size: 16px; width: 100%; }
-.primary:hover:not(:disabled) { filter: brightness(1.06); border-color: var(--accent); }
-.ghost { background: transparent; }
-.small { font-size: 13px; padding: 5px 10px; }
-.adjust { display: flex; flex-wrap: wrap; gap: 8px; }
-.counter { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.suggest button { text-align: left; background: var(--accent-soft); border-color: transparent; font-size: 18px; }
+.counter { font-size: 15px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; margin-top: 4px; }
 .counter .over { color: var(--bad); font-weight: 700; }
-#reply { min-height: 260px; font-size: 15.5px; line-height: 1.75; background: var(--surface); }
-.notice { font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); border-left: 3px solid var(--warn); }
+#reply { min-height: 320px; font-size: 19px; line-height: 1.8; background: var(--surface); }
+.adjust { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notice { font-size: 16px; padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); border-left: 4px solid var(--warn); }
 .notice[hidden] { display: none; }
-.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.checks li { display: grid; grid-template-columns: 74px 92px 1fr; gap: 8px; align-items: baseline; font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.check-summary { border-radius: 12px; padding: 14px 16px; font-weight: 700; font-size: 18px; }
+.check-summary.pass { background: var(--good-soft); color: var(--good); }
+.check-summary.warn { background: var(--warn-soft); color: var(--warn); }
+.check-summary.fail { background: var(--bad-soft); color: var(--bad); }
+.check-summary.na { background: var(--bg); color: var(--muted); font-weight: 400; }
+details.check-detail > summary { cursor: pointer; font-size: 16px; color: var(--muted); min-height: 44px; display: flex; align-items: center; gap: 6px; list-style: none; }
+.checks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 16px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
 .checks .name { font-weight: 700; }
-.pill { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; text-align: center; }
+.checks .why { grid-column: 1 / -1; color: var(--muted); }
+.pill { font-size: 15px; font-weight: 700; border-radius: 999px; padding: 1px 10px; text-align: center; }
 .pill.pass { background: var(--good-soft); color: var(--good); }
 .pill.warn { background: var(--warn-soft); color: var(--warn); }
 .pill.fail { background: var(--bad-soft); color: var(--bad); }
 .pill.na { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
-.checks .why { color: var(--muted); word-break: keep-all; }
 .checks mark { background: var(--bad-soft); color: var(--bad); border-radius: 3px; padding: 0 3px; }
-@media (max-width: 420px) { .checks li { grid-template-columns: 1fr auto; } .checks .why { grid-column: 1 / -1; } .row { grid-template-columns: 1fr; } }
-.bar { display: flex; gap: 8px; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+.bar-inner { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; width: 100%; }
 .bar .primary { flex: 1; }
-@media (max-width: 959px) {
-  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); z-index: 5; }
-}
-details.settings { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; }
-details.settings summary { cursor: pointer; font-weight: 700; font-size: 14px; }
-.settings-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); padding: 12px 0 6px; }
-.check-inline { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); margin-top: 26px; }
-.foot { font-size: 12px; color: var(--muted); }
-.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: s .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+.bar #nextBtn { flex: none; width: 34%; font-size: 17px; }
+details.settings { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 6px 18px; }
+.settings-grid { display: grid; gap: 16px; padding: 8px 0 14px; }
+.check-inline { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+.check-inline input { width: 24px; height: 24px; }
+.share-row { display: grid; gap: 6px; margin-top: 10px; }
+.share-row[hidden] { display: none; }
+.foot { font-size: 15px; color: var(--muted); }
+.howto { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 16px; color: var(--muted); }
+.howto ol { margin: 6px 0 0; padding-left: 22px; }
+.spin { display: inline-block; width: 18px; height: 18px; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: s .8s linear infinite; vertical-align: -3px; margin-right: 8px; }
 @keyframes s { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (min-width: 700px) { .drop-hint-pc { display: inline; } }
+.drop-hint-pc { display: none; }
 </style>
 </head>
 <body>
@@ -132,118 +139,138 @@ details.settings summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   <header>
     <div>
       <h1>답글<span>다듬이</span></h1>
-      <p class="lede">리뷰 캡처만 붙여넣으면 별점·메뉴·사진을 읽고 공감·책임·개선 약속이 담긴 답글 초안까지 만들어요.</p>
+      <p class="lede">리뷰 사진만 넣으면 손님 답글을 대신 써 드려요.</p>
     </div>
-    <button class="ghost small" id="resetBtn" type="button">새 리뷰 쓰기</button>
+    <button class="ghost small" id="resetBtn" type="button">처음부터</button>
   </header>
 
-  <details class="settings" id="settings">
-    <summary>매장 설정 (매장 이름·메뉴·말투·이모티콘·글자 수)</summary>
-    <div class="settings-grid">
-      <div style="grid-column:1/-1"><label for="apiKey">Gemini API 키 (무료, AI 사용에 필요)</label>
-        <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="AI Studio에서 복사한 키를 붙여넣으세요">
-        <div class="share-row" id="shareRow" hidden>
-          <button class="small" type="button" id="shareBtn">점주용 바로 쓰기 링크 복사</button>
-          <span class="foot">이 링크를 연 사람은 키를 넣지 않고 바로 쓸 수 있어요. 키가 담겨 있으니 점주에게만 1:1로 보내세요.</span>
-        </div>
-        <span class="foot" id="keyNote" style="display:block;margin-top:4px"><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 구글 계정으로 무료 키를 만들 수 있어요(결제 등록 없이). 키는 이 브라우저에만 저장되고 Google로만 전송돼요. 무료 등급은 하루 사용량 한도가 있고, 보낸 내용이 Google 제품 개선에 쓰일 수 있어요. 공용 컴퓨터에서는 넣지 마세요.</span></div>
-      <div><label for="storeName">매장 이름</label><input type="text" id="storeName" value="79대포 창원팔용점"></div>
-      <div><label for="tone">말투</label>
-        <select id="tone"><option value="friendly">친근하게</option><option value="polite">정중하게</option></select></div>
-      <div><label for="emojiMax">불만 리뷰 이모티콘 최대</label><input type="number" id="emojiMax" min="0" max="10" value="5"></div>
-      <div><label for="maxChars">답글 최대 글자 수</label><input type="number" id="maxChars" min="100" max="1000" step="10" value="400"></div>
-      <div><label for="signoff">끝인사 (선택)</label><input type="text" id="signoff" placeholder="예: 오늘도 맛있는 하루 되세요!"></div>
-      <div><span class="check-inline"><input type="checkbox" id="useEmoji" checked> <label for="useEmoji" style="margin:0;color:inherit">이모티콘 사용</label></span></div>
+  <div class="howto">
+    <strong style="color:var(--ink)">쓰는 순서</strong>
+    <ol>
+      <li>배달앱에서 답글 달 리뷰 화면을 캡처(화면 저장)해요.</li>
+      <li>아래 <b>리뷰 사진 고르기</b>를 눌러 그 사진을 골라요.</li>
+      <li>답글이 나오면 읽어 보고 <b>답글 복사하기</b>를 눌러요.</li>
+      <li>배달앱 답글 칸에 붙여넣으면 끝이에요.</li>
+    </ol>
+  </div>
+
+  <section class="card" aria-labelledby="h-input">
+    <h2 id="h-input"><span class="num">1</span>리뷰 사진 넣기</h2>
+    <p class="help">답글을 달 리뷰를 캡처한 사진을 골라 주세요. 리뷰가 길면 여러 장(최대 4장)을 한 번에 골라도 돼요.</p>
+    <label class="pick" for="file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-8 8"/></svg>
+      리뷰 사진 고르기
+    </label>
+    <input type="file" id="file" accept="image/*" multiple class="sr">
+    <div class="drop" id="drop" tabindex="0" aria-label="고른 리뷰 사진">
+      <div id="dropEmpty">고른 사진이 여기에 보여요<span class="drop-hint-pc"><br>컴퓨터에서는 캡처한 뒤 Ctrl + V로 붙여넣어도 돼요</span></div>
+      <div class="thumbs" id="thumbs" hidden></div>
+    </div>
+    <div class="status" id="readStatus" aria-live="polite"></div>
+
+    <details class="readout" id="readout">
+      <summary>사진에서 읽은 내용 보기 (틀리면 고치기)</summary>
+      <div class="readout-body">
+        <div><label for="rating">별점</label>
+          <span class="field-help">손님이 준 별점이 자동으로 들어가요.</span>
+          <select id="rating"><option value="">모름</option><option value="1">1점</option><option value="2">2점</option><option value="3">3점</option><option value="4">4점</option><option value="5">5점</option></select></div>
+        <div><label for="menu">주문 메뉴</label>
+          <span class="field-help">손님이 주문한 메뉴가 우리 가게 메뉴 이름으로 들어가요.</span>
+          <input type="text" id="menu" placeholder="사진을 넣으면 자동으로 채워져요"></div>
+        <div><label for="review">손님 리뷰 글</label>
+          <span class="field-help">손님이 쓴 리뷰가 그대로 들어가요. 사진 없이 리뷰 글을 여기에 직접 붙여넣어도 돼요.</span>
+          <textarea id="review" rows="3" placeholder="손님이 쓴 리뷰 글"></textarea></div>
+        <div><label for="photoNote">음식 사진에서 보이는 것</label>
+          <span class="field-help">손님이 올린 음식 사진에 보이는 문제(샌 국물, 탄 부분 등)가 들어가요. 없으면 비어 있어요.</span>
+          <input type="text" id="photoNote" placeholder="사진 속 문제 (없으면 비워 둬요)"></div>
+        <div><label for="prevReply">이미 단 답글</label>
+          <span class="field-help">예전에 단 답글이 사진에 있으면 들어가요. 그 뜻은 살리고 문제 되는 말은 빼서 다시 써 드려요.</span>
+          <textarea id="prevReply" rows="2" placeholder="없으면 비워 둬요"></textarea></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="h-note">
+    <div class="card-head">
+      <h2 id="h-note"><span class="num">2</span>하고 싶은 말 <span class="foot" style="font-weight:400">(안 써도 돼요)</span></h2>
+    </div>
+    <p class="help">손님께 꼭 전하고 싶은 말이 있으면 짧게 적어 주세요. 사진을 넣으면 추천 문장이 나오니 눌러서 골라도 돼요.</p>
+    <div class="suggest" id="suggest" role="group" aria-label="추천 문장"></div>
+    <div>
+      <label for="note" class="sr">하고 싶은 말</label>
+      <input type="text" id="note" maxlength="100" placeholder="하고 싶은 말을 짧게 적어 주세요">
+      <div class="counter" id="noteCount">0/100</div>
+    </div>
+    <button class="primary" id="genBtn" type="button">이 내용으로 답글 만들기</button>
+    <div class="status" id="genStatus" aria-live="polite"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-result">
+    <div class="card-head">
+      <h2 id="h-result"><span class="num">3</span>답글 확인하고 복사하기</h2>
+      <span class="chip type" id="typeChip" hidden></span>
+    </div>
+    <p class="help">답글을 읽어 보고, 고칠 곳이 있으면 글자를 눌러 직접 고치세요. 다 됐으면 아래 <b>답글 복사하기</b>를 누르세요.</p>
+    <div class="notice" id="ownerWarn" hidden></div>
+    <div>
+      <label for="reply" class="sr">답글</label>
+      <textarea id="reply" rows="10" placeholder="리뷰 사진을 넣으면 여기에 답글이 나타나요."></textarea>
+      <div class="counter" id="replyCount"></div>
     </div>
     <div>
-      <label for="menuList">우리 매장 메뉴 (캡처 속 메뉴 이름을 이 목록에 맞춰 읽어요. 한 줄에 한 분류)</label>
-      <textarea id="menuList" rows="9"></textarea>
-      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <span class="foot">기본값: 79대포 창원팔용점 배달앱 메뉴 (2026년 11월 16일 캡처 기준). 메뉴가 바뀌면 여기서 고쳐 주세요.</span>
-        <button class="small ghost" type="button" id="menuReset">기본 메뉴로 되돌리기</button>
+      <label>마음에 안 들면 눌러 보세요</label>
+      <div class="adjust" role="group" aria-label="답글 고치기">
+        <button type="button" data-adjust="short">더 짧게</button>
+        <button type="button" data-adjust="polite">더 정중하게</button>
+        <button type="button" data-adjust="noemoji">이모티콘 빼기</button>
+        <button type="button" data-adjust="again">새로 다시 쓰기</button>
       </div>
     </div>
-    <p class="foot">설정은 이 브라우저에만 저장됩니다. 배달앱마다 답글 글자 수 제한이 다를 수 있으니 쓰는 앱에 맞춰 바꿔 주세요.</p>
-  </details>
-
-  <div class="cols">
-    <section class="card" aria-labelledby="h-input">
-      <div class="card-head">
-        <h2 id="h-input"><span class="num">1</span>고객 리뷰</h2>
-        <span class="chip" id="exampleChip1">예시</span>
-      </div>
-
-      <div class="drop" id="drop" tabindex="0" role="button" aria-label="리뷰 캡처 붙여넣기 또는 이미지 고르기">
-        <div id="dropEmpty">
-          <strong>리뷰 캡처를 붙여넣으면 답글까지 자동으로 만들어요</strong><br>
-          <span class="kbd">Ctrl</span> + <span class="kbd">V</span> (맥은 <span class="kbd">⌘</span> + <span class="kbd">V</span>) · 끌어다 놓기 · 눌러서 사진 고르기<br>
-          <span style="font-size:12px">리뷰가 길면 캡처 여러 장, 음식 사진 확대본도 함께 넣을 수 있어요 (최대 4장)</span>
-        </div>
-        <div class="thumbs" id="thumbs" hidden></div>
-      </div>
-      <input type="file" id="file" accept="image/*" multiple class="sr" tabindex="-1">
-      <div class="status" id="readStatus" aria-live="polite"></div>
-
-      <details class="readout" id="readout" open>
-        <summary>캡처에서 읽은 내용 <span class="foot">틀린 곳만 고치세요</span></summary>
-        <div class="readout-body">
-          <div class="row">
-            <div><label for="rating">별점</label>
-              <select id="rating"><option value="">모름</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
-            <div><label for="menu">주문 메뉴</label><input type="text" id="menu" placeholder="캡처에서 자동으로 채워져요"></div>
-          </div>
-          <div><label for="review">리뷰 본문</label>
-            <textarea id="review" rows="3" placeholder="캡처 없이 직접 붙여넣어도 됩니다"></textarea></div>
-          <div><label for="photoNote">사진에서 보이는 내용</label>
-            <input type="text" id="photoNote" placeholder="예: 용기 뚜껑이 열려 국물이 봉투에 샘"></div>
-          <div><label for="prevReply">캡처에 있던 기존 사장님 답글 (있으면 뜻을 살려요)</label>
-            <textarea id="prevReply" rows="2" placeholder="없으면 비워 두세요"></textarea></div>
-        </div>
-      </details>
-
-      <div class="card-head" style="margin-top:6px">
-        <h2 id="h-note"><span class="num">2</span>사장님 한 줄 <span class="foot" style="font-weight:400">(안 적어도 돼요)</span></h2>
-        <span class="counter" id="noteCount">0/100</span>
-      </div>
-      <div class="suggest" id="suggest" role="group" aria-label="추천 한 줄"></div>
-      <div>
-        <label for="note" class="sr">사장님 한 줄</label>
-        <input type="text" id="note" maxlength="100" placeholder="하고 싶은 말이 있으면 적거나 위 추천을 눌러요">
-      </div>
-      <button class="primary" id="genBtn" type="button">답글 다듬기</button>
-      <div class="status" id="genStatus" aria-live="polite"></div>
-    </section>
-
-    <section class="card result" aria-labelledby="h-result">
-      <div class="card-head">
-        <h2 id="h-result"><span class="num">3</span>답글 확인·수정</h2>
-        <div style="display:flex;gap:6px"><span class="chip type" id="typeChip" hidden></span><span class="chip" id="exampleChip2">예시</span></div>
-      </div>
-      <div class="notice" id="ownerWarn" hidden></div>
-      <div>
-        <label for="reply">여기서 바로 고친 뒤 복사하세요</label>
-        <textarea id="reply" rows="10"></textarea>
-        <div class="counter" id="replyCount"></div>
-      </div>
-      <div class="adjust" role="group" aria-label="빠른 조정">
-        <button class="small" type="button" data-adjust="short">더 짧게</button>
-        <button class="small" type="button" data-adjust="polite">더 정중하게</button>
-        <button class="small" type="button" data-adjust="noemoji">이모티콘 빼기</button>
-        <button class="small" type="button" data-adjust="again">다시 쓰기</button>
-      </div>
-      <div>
-        <label>답글 기준 체크 (고칠 때마다 다시 확인해요)</label>
+    <div>
+      <div class="check-summary na" id="checkSummary" aria-live="polite">답글이 나오면 문제 되는 말이 없는지 점검해 드려요.</div>
+      <details class="check-detail" id="checkDetail">
+        <summary>점검 내용 자세히 보기</summary>
         <ul class="checks" id="checks"></ul>
+      </details>
+    </div>
+    <div class="status" id="copyStatus" aria-live="polite"></div>
+  </section>
+
+  <details class="settings" id="settings">
+    <summary>설정 (처음 한 번만 하면 돼요)</summary>
+    <div class="settings-grid">
+      <div><label for="apiKey">AI 연결 키</label>
+        <span class="field-help">받은 링크로 들어왔다면 이미 들어가 있어요. 비어 있을 때만 넣으세요.</span>
+        <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="Google AI Studio에서 복사한 키">
+        <div class="share-row" id="shareRow" hidden>
+          <button class="small" type="button" id="shareBtn">다른 기기용 바로 쓰기 링크 복사</button>
+          <span class="foot">이 링크를 연 기기는 키를 넣지 않고 바로 쓸 수 있어요. 키가 담겨 있으니 본인이나 믿는 사람에게만 1:1로 보내세요.</span>
+        </div>
+        <span class="foot" id="keyNote" style="display:block;margin-top:6px"><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 구글 계정으로 무료 키를 만들 수 있어요(결제 등록 없이). 키는 이 기기에만 저장돼요. 무료라서 하루 사용량에 한도가 있어요.</span></div>
+      <div><label for="storeName">가게 이름</label><input type="text" id="storeName" value="79대포 창원팔용점"></div>
+      <div><label for="tone">답글 말투</label>
+        <select id="tone"><option value="friendly">친근하게</option><option value="polite">정중하게</option></select></div>
+      <div><span class="check-inline"><input type="checkbox" id="useEmoji" checked> <label for="useEmoji" style="margin:0;font-weight:400">답글에 이모티콘 넣기</label></span></div>
+      <div><label for="emojiMax">불만 리뷰 답글의 이모티콘 최대 개수</label><input type="number" id="emojiMax" min="0" max="10" value="5" inputmode="numeric"></div>
+      <div><label for="maxChars">답글 최대 글자 수</label><input type="number" id="maxChars" min="100" max="1000" step="10" value="400" inputmode="numeric"></div>
+      <div><label for="signoff">끝인사 (넣고 싶을 때만)</label><input type="text" id="signoff" placeholder="답글 마지막에 늘 넣을 인사말"></div>
+      <div>
+        <label for="menuList">우리 가게 메뉴</label>
+        <span class="field-help">사진 속 메뉴 이름을 이 목록에 맞춰 읽어요. 메뉴가 바뀌면 고쳐 주세요.</span>
+        <textarea id="menuList" rows="8" style="font-size:16px"></textarea>
+        <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
+          <span class="foot">기본값: 79대포 창원팔용점 배달앱 메뉴 (2026년 11월 16일 기준)</span>
+          <button class="small ghost" type="button" id="menuReset">기본 메뉴로 되돌리기</button>
+        </div>
       </div>
-      <div class="bar">
-        <button class="primary" id="copyBtn" type="button">답글 복사하기</button>
-        <button id="nextBtn" type="button">다음 리뷰</button>
-      </div>
-      <div class="status" id="copyStatus" aria-live="polite"></div>
-    </section>
-  </div>
-  <p class="foot">캡처 이미지는 답글을 만드는 데만 쓰고 저장하지 않습니다. 답글은 AI 초안이니 등록 전에 한 번 읽어 주세요.</p>
+    </div>
+  </details>
+  <p class="foot">리뷰 사진은 답글을 만드는 데만 쓰고 저장하지 않아요. 답글은 AI가 쓴 초안이니 올리기 전에 한 번 읽어 주세요.</p>
 </div>
+<div class="bar"><div class="bar-inner">
+  <button class="primary" id="copyBtn" type="button">답글 복사하기</button>
+  <button id="nextBtn" type="button">다음 리뷰</button>
+</div></div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -304,8 +331,8 @@ function refreshEngine() {
   sample = getKey() ? keySample : null;
   canImages = !!sample;
   setBusy(false);
-  if (!sample) setStatus('genStatus', '매장 설정에 Gemini 무료 API 키를 넣으면 캡처 읽기와 답글 쓰기가 작동해요. 키 없이도 답글을 직접 쓰면 기준 체크는 돼요.', 'err');
-  else if ($('genStatus').textContent.includes('API 키')) setStatus('genStatus', 'API 키가 저장됐어요. 리뷰 캡처를 붙여넣어 보세요.', 'ok');
+  if (!sample) setStatus('genStatus', 'AI 연결 키가 아직 없어요. 받은 링크로 다시 들어오거나 맨 아래 설정에 키를 넣어 주세요.', 'err');
+  else if ($('genStatus').textContent.includes('API 키')) setStatus('genStatus', '키가 저장됐어요. 위에서 리뷰 사진을 골라 보세요.', 'ok');
 }
 let ai = { type: null, checks: {}, ownerWarn: null };
 
@@ -424,6 +451,11 @@ const LABEL = { pass: '충족', warn: '확인 필요', fail: '부족', na: '해�
 
 function renderChecks() {
   const text = $('reply').value;
+  if (!text.trim()) {
+    const sm = $('checkSummary'); sm.className = 'check-summary na'; sm.textContent = '답글이 나오면 문제 되는 말이 없는지 점검해 드려요.';
+    $('checks').innerHTML = ''; $('checkDetail').hidden = true; $('replyCount').textContent = ''; return;
+  }
+  $('checkDetail').hidden = false;
   const r = ruleReport(text);
   const praise = isPraise();
   const rows = [];
@@ -448,6 +480,12 @@ function renderChecks() {
   $('checks').innerHTML = rows.map(([n, st, why]) =>
     `<li><span class="name">${n}</span><span class="pill ${st}">${LABEL[st]}</span><span class="why">${n === '주의할 표현' && st === 'fail' ? why : esc(why)}</span></li>`
   ).join('');
+  const fails = rows.filter(r => r[1] === 'fail').map(r => r[0]);
+  const warns = rows.filter(r => r[1] === 'warn').map(r => r[0]);
+  const sm = $('checkSummary');
+  if (fails.length) { sm.className = 'check-summary fail'; sm.textContent = '고치면 좋은 부분이 있어요: ' + fails.join(', ') + '. 아래 \u201c자세히 보기\u201d를 눌러 확인하세요.'; $('checkDetail').open = true; }
+  else if (warns.length) { sm.className = 'check-summary warn'; sm.textContent = '고치면서 바뀐 부분이 있어요: ' + warns.join(', ') + '. 한 번 더 읽어 보세요.'; }
+  else { sm.className = 'check-summary pass'; sm.textContent = '문제 되는 말이 없어요. 복사해서 쓰셔도 돼요.'; }
   $('replyCount').innerHTML = `<span class="${overLen ? 'over' : ''}">${r.len}/${r.maxChars}자</span> · <span class="${overEmoji ? 'over' : ''}">이모티콘 ${r.emoji}/${r.emojiMax}</span>`;
 }
 $('reply').addEventListener('input', () => { renderChecks(); hideExample(); });
@@ -457,7 +495,7 @@ function updateNoteCount() { $('note').value.length; $('noteCount').textContent 
 $('note').addEventListener('input', () => { updateNoteCount(); hideExample(); });
 $('note').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); generate(); } });
 
-function hideExample() { $('exampleChip1').hidden = true; $('exampleChip2').hidden = true; }
+function hideExample() {}
 ['rating','menu','review','photoNote','prevReply'].forEach(id => $(id).addEventListener('input', hideExample));
 
 /* ---------- 캡처 붙여넣기 ---------- */
@@ -504,21 +542,20 @@ function renderThumbs() {
 }
 
 async function takeImages(files) {
-  if (!$('exampleChip1').hidden) resetFields(); /* 예시 내용이 새 리뷰에 섞이지 않게 비우기 */
   hideExample();
   if (finished && !busy) resetFields(); /* 답글까지 끝난 뒤 새 캡처를 넣으면 새 리뷰로 시작 */
   for (const f of files) { if (images.length < 4) images.push(await shrink(f)); }
   renderThumbs();
   clearTimeout(readTimer);
-  setStatus('readStatus', '<span class="spin"></span>캡처를 더 붙여넣을 수 있어요. 잠시 후 읽기 시작해요…');
+  setStatus('readStatus', '<span class="spin"></span>사진을 받았어요. 곧 읽기 시작해요…');
   readTimer = setTimeout(() => { readTimer = null; readReview(true); }, 1200);
 }
 
 function setStatus(id, msg, cls) { const el = $(id); el.className = 'status' + (cls ? ' ' + cls : ''); el.innerHTML = msg; }
 function aiError(e) {
   const code = e && e.code;
-  if (code === 'no_key') return '매장 설정에 Gemini API 키를 넣어 주세요.';
-  if (code === 'bad_key') return 'API 키가 맞지 않거나 만료됐어요. 매장 설정에서 키를 확인해 주세요.';
+  if (code === 'no_key') return '맨 아래 설정에 AI 연결 키를 넣어 주세요.';
+  if (code === 'bad_key') return 'AI 연결 키가 맞지 않아요. 받은 링크로 다시 들어오거나 맨 아래 설정에서 키를 확인해 주세요.';
   if (code === 'not_granted') return 'AI 사용이 허용되지 않았어요. 리뷰 내용을 직접 입력하고 답글도 직접 쓸 수 있어요.';
   if (code === 'rate_limited') return inClaude ? '요청이 많아 잠시 쉬어야 해요. 1분쯤 뒤 다시 눌러 주세요.' : '무료 사용량 한도에 걸렸어요. 1분쯤 뒤 다시 눌러 보고, 그래도 안 되면 오늘 한도를 다 쓴 거라 내일 다시 써 주세요.';
   return 'AI 응답을 받지 못했어요. 다시 눌러 주세요.' + (e && e.message ? ' (' + esc(e.message) + ')' : '');
@@ -537,9 +574,9 @@ function renderSuggestions(list) {
 
 async function readReview(autoGenerate) {
   if (!images.length) return;
-  if (!sample) { setStatus('readStatus', inClaude ? '이 화면에서는 AI가 캡처를 읽을 수 없어요. 리뷰 본문을 직접 붙여넣어 주세요.' : '캡처를 읽으려면 매장 설정에 Gemini API 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
+  if (!sample) { setStatus('readStatus', inClaude ? '이 화면에서는 AI가 캡처를 읽을 수 없어요. 리뷰 본문을 직접 붙여넣어 주세요.' : '사진을 읽으려면 맨 아래 설정에 AI 연결 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
   if (!canImages) { setStatus('readStatus', '이 계정에서는 이미지 읽기를 쓸 수 없어요. 리뷰 본문을 직접 붙여넣어 주세요.', 'err'); return; }
-  setStatus('readStatus', `<span class="spin"></span>캡처 ${images.length}장에서 리뷰·별점·메뉴·사진을 읽는 중…`);
+  setStatus('readStatus', `<span class="spin"></span>사진 ${images.length}장을 읽고 있어요. 잠시만 기다려 주세요…`);
   const menuList = getSettings().menuList;
   const prompt = `이미지들은 배달앱(배달의민족, 쿠팡이츠, 요기요 등)의 고객 리뷰 화면 캡처다. 여러 장이면 한 리뷰를 나눠 찍은 것이거나 리뷰 사진 확대본이다.
 고객 리뷰를 꼼꼼히 읽어 아래 JSON 하나만 반환하라. 설명은 쓰지 마라.
@@ -566,7 +603,7 @@ ${menuList || '(없음)'}
  "found": 고객 리뷰를 찾았으면 true}`;
   try {
     const r = await sample.json(prompt, { images, modelTier: 'default' });
-    if (!r || r.found === false || !r.review) { setStatus('readStatus', '캡처에서 리뷰를 찾지 못했어요. 리뷰 부분이 보이게 다시 캡처하거나 본문을 직접 붙여넣어 주세요.', 'err'); return; }
+    if (!r || r.found === false || !r.review) { setStatus('readStatus', '사진에서 리뷰 글을 찾지 못했어요. 리뷰 글이 보이게 다시 캡처해 주세요.', 'err'); return; }
     $('rating').value = r.rating ? String(Math.min(5, Math.max(1, Math.round(r.rating)))) : '';
     $('menu').value = r.menu || '';
     $('review').value = r.review || '';
@@ -574,8 +611,8 @@ ${menuList || '(없음)'}
     $('prevReply').value = r.prev_reply || '';
     renderSuggestions(r.suggested_notes);
     const bits = [r.rating ? `별점 ${r.rating}점` : null, r.menu ? r.menu : null, r.photo_note ? '사진 확인' : null, r.prev_reply ? '기존 답글 있음' : null].filter(Boolean);
-    setStatus('readStatus', '읽었어요: ' + esc(bits.join(' · ')), 'ok');
-    if (autoGenerate) generate(undefined, '읽은 내용으로 답글을 쓰는 중…');
+    setStatus('readStatus', '사진을 읽었어요 (' + esc(bits.join(' · ')) + ')', 'ok');
+    if (autoGenerate) generate(undefined, '답글을 쓰고 있어요. 10초 정도 걸려요…');
   } catch (e) { setStatus('readStatus', aiError(e), 'err'); }
 }
 
@@ -660,14 +697,14 @@ function applyResult(r) {
   $('typeChip').textContent = ai.type ? '리뷰 유형: ' + ai.type : '';
   $('typeChip').hidden = !ai.type;
   const w = $('ownerWarn');
-  if (ai.ownerWarn) { w.textContent = '사장님 메모에서 뺀 표현: ' + ai.ownerWarn; w.hidden = false; } else { w.hidden = true; }
+  if (ai.ownerWarn) { w.textContent = '문제가 될 수 있어 뺀 말: ' + ai.ownerWarn; w.hidden = false; } else { w.hidden = true; }
   renderChecks();
 }
 
 async function generate(extra, label) {
   if (busy) return;
-  if (!$('review').value.trim()) { setStatus('genStatus', '리뷰 본문이 비어 있어요. 캡처를 붙여넣거나 본문을 입력해 주세요.', 'err'); $('review').focus(); return; }
-  if (!sample) { setStatus('genStatus', inClaude ? '이 화면에서는 AI를 쓸 수 없어요. 오른쪽에서 답글을 직접 쓰면 기준 체크는 계속 돼요.' : '답글을 만들려면 매장 설정에 Gemini API 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
+  if (!$('review').value.trim()) { setStatus('genStatus', '아직 리뷰가 없어요. 위에서 리뷰 사진을 먼저 골라 주세요.', 'err'); $('review').focus(); return; }
+  if (!sample) { setStatus('genStatus', inClaude ? '이 화면에서는 AI를 쓸 수 없어요. 아래 3번 칸에 답글을 직접 쓰면 점검은 계속 돼요.' : '답글을 만들려면 맨 아래 설정에 AI 연결 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
   hideExample();
   setBusy(true);
   setStatus('genStatus', `<span class="spin"></span>${label || '기준에 맞춰 답글을 다듬는 중…'}`);
@@ -675,8 +712,8 @@ async function generate(extra, label) {
     const r = await callAI(extra);
     applyResult(r);
     finished = true;
-    setStatus('genStatus', $('note').value.trim() ? '답글이 준비됐어요. 오른쪽에서 고친 뒤 복사하세요.' : '답글이 준비됐어요. 하고 싶은 말이 있으면 추천 한 줄을 누르거나 적고 다시 다듬으세요.', 'ok');
-    if (window.matchMedia('(max-width: 959px)').matches) $('h-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setStatus('genStatus', '답글이 나왔어요. 아래 3번에서 확인하세요.', 'ok');
+    $('h-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setStatus('genStatus', aiError(e), 'err');
   } finally { setBusy(false); }
@@ -707,12 +744,12 @@ $('copyBtn').addEventListener('click', async () => {
   const r = ruleReport(t);
   try {
     await navigator.clipboard.writeText(t);
-    setStatus('copyStatus', r.hits.length ? '복사했어요. 주의할 표현이 남아 있으니 붙여넣기 전에 한 번 더 확인하세요.' : '복사했어요. 배달앱 답글 칸에 붙여넣으세요.', r.hits.length ? 'err' : 'ok');
-    $('copyBtn').textContent = '복사됨 ✓';
-    setTimeout(() => { $('copyBtn').textContent = '답글 복사하기'; }, 1600);
+    setStatus('copyStatus', r.hits.length ? '복사했어요. 주의할 표현이 남아 있으니 붙여넣기 전에 한 번 더 확인하세요.' : '복사했어요. 배달앱 답글 칸을 길게 눌러 붙여넣으세요.', r.hits.length ? 'err' : 'ok');
+    $('copyBtn').textContent = '복사됐어요 ✓';
+    setTimeout(() => { $('copyBtn').textContent = '답글 복사하기'; }, 2500);
   } catch (e) {
     $('reply').focus(); $('reply').select();
-    setStatus('copyStatus', '자동 복사가 막혀 있어요. 선택된 답글을 길게 누르거나 Ctrl + C로 복사하세요.', 'err');
+    setStatus('copyStatus', '자동 복사가 안 됐어요. 답글 글자를 길게 눌러 \u201c전체 선택\u201d 후 \u201c복사\u201d를 눌러 주세요.', 'err');
   }
 });
 
@@ -735,15 +772,8 @@ $('nextBtn').addEventListener('click', clearAll);
 $('resetBtn').addEventListener('click', clearAll);
 
 /* ---------- 시작 ---------- */
-function loadExample() {
-  $('rating').value = EXAMPLE.rating; $('menu').value = EXAMPLE.menu; $('review').value = EXAMPLE.review;
-  $('photoNote').value = EXAMPLE.photoNote; $('note').value = EXAMPLE.note; $('prevReply').value = EXAMPLE.prevReply;
-  renderSuggestions(EXAMPLE.suggestions);
-  applyResult({ type: EXAMPLE.type, reply: EXAMPLE.reply, checks: EXAMPLE.checks, owner_note_warning: null });
-  updateNoteCount();
-}
-loadSettings();
-loadExample();
+updateNoteCount();
+renderChecks();
 
 /* 점주용 링크(#k=키)로 들어오면 키를 이 브라우저에 저장하고 주소창에서 지운다. #은 서버로 전송되지 않는다. */
 (function takeKeyFromLink() {
@@ -757,7 +787,7 @@ loadExample();
 function updateShareRow() { $('shareRow').hidden = !getKey(); }
 $('shareBtn').addEventListener('click', async () => {
   const link = location.origin + location.pathname + '#k=' + encodeURIComponent(getKey());
-  try { await navigator.clipboard.writeText(link); setStatus('copyStatus', '점주용 링크를 복사했어요. 카카오톡 1:1 대화 등으로 점주에게만 보내세요.', 'ok'); $('shareBtn').textContent = '복사됨 ✓'; setTimeout(() => { $('shareBtn').textContent = '점주용 바로 쓰기 링크 복사'; }, 1600); }
+  try { await navigator.clipboard.writeText(link); setStatus('copyStatus', '링크를 복사했어요. 카카오톡 1:1 대화로만 보내세요.', 'ok'); $('shareBtn').textContent = '복사됨 ✓'; setTimeout(() => { $('shareBtn').textContent = '다른 기기용 바로 쓰기 링크 복사'; }, 1600); }
   catch (e) { setStatus('copyStatus', '자동 복사가 막혀 있어요. 다른 브라우저에서 다시 눌러 주세요.', 'err'); }
 });
 $('apiKey').value = getKey();
@@ -772,12 +802,12 @@ $('apiKey').addEventListener('change', () => { setKey($('apiKey').value.trim());
     if (sample) {
       try { const l = await sample.limits(); canImages = !!(l && l.images); } catch (e) { canImages = false; }
     } else {
-      setStatus('genStatus', '이 화면에서는 AI를 쓸 수 없어요. 답글을 직접 쓰면 기준 체크는 계속 돼요.', 'err');
+      setStatus('genStatus', '이 화면에서는 AI를 쓸 수 없어요. 답글을 직접 쓰면 점검은 계속 돼요.', 'err');
     }
     setBusy(false);
   } else {
     refreshEngine();
-    if (window.__keyFromLink) setStatus('genStatus', '바로 쓸 준비가 됐어요. 리뷰 캡처를 붙여넣어 보세요.', 'ok');
+    if (window.__keyFromLink) setStatus('genStatus', '바로 쓸 준비가 됐어요. 위에서 리뷰 사진을 골라 보세요.', 'ok');
   }
 })();
 setBusy(false);
