@@ -78,6 +78,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .readout { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
 .readout summary { cursor: pointer; font-weight: 700; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
 .readout-body { display: grid; gap: 12px; padding: 10px 0 4px; }
+.share-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.share-row[hidden] { display: none; }
 .suggest { display: flex; flex-wrap: wrap; gap: 6px; }
 .suggest:empty { display: none; }
 .suggest button { font-size: 13px; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); border-color: transparent; color: var(--ink); text-align: left; }
@@ -140,6 +142,10 @@ details.settings summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     <div class="settings-grid">
       <div style="grid-column:1/-1"><label for="apiKey">Gemini API 키 (무료, AI 사용에 필요)</label>
         <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="AI Studio에서 복사한 키를 붙여넣으세요">
+        <div class="share-row" id="shareRow" hidden>
+          <button class="small" type="button" id="shareBtn">점주용 바로 쓰기 링크 복사</button>
+          <span class="foot">이 링크를 연 사람은 키를 넣지 않고 바로 쓸 수 있어요. 키가 담겨 있으니 점주에게만 1:1로 보내세요.</span>
+        </div>
         <span class="foot" id="keyNote" style="display:block;margin-top:4px"><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 구글 계정으로 무료 키를 만들 수 있어요(결제 등록 없이). 키는 이 브라우저에만 저장되고 Google로만 전송돼요. 무료 등급은 하루 사용량 한도가 있고, 보낸 내용이 Google 제품 개선에 쓰일 수 있어요. 공용 컴퓨터에서는 넣지 마세요.</span></div>
       <div><label for="storeName">매장 이름</label><input type="text" id="storeName" value="79대포 창원팔용점"></div>
       <div><label for="tone">말투</label>
@@ -739,8 +745,24 @@ function loadExample() {
 loadSettings();
 loadExample();
 
+/* 점주용 링크(#k=키)로 들어오면 키를 이 브라우저에 저장하고 주소창에서 지운다. #은 서버로 전송되지 않는다. */
+(function takeKeyFromLink() {
+  const h = location.hash || '';
+  if (!h.startsWith('#k=')) return;
+  const k = decodeURIComponent(h.slice(3)).trim();
+  if (k) setKey(k);
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+  window.__keyFromLink = !!k;
+})();
+function updateShareRow() { $('shareRow').hidden = !getKey(); }
+$('shareBtn').addEventListener('click', async () => {
+  const link = location.origin + location.pathname + '#k=' + encodeURIComponent(getKey());
+  try { await navigator.clipboard.writeText(link); setStatus('copyStatus', '점주용 링크를 복사했어요. 카카오톡 1:1 대화 등으로 점주에게만 보내세요.', 'ok'); $('shareBtn').textContent = '복사됨 ✓'; setTimeout(() => { $('shareBtn').textContent = '점주용 바로 쓰기 링크 복사'; }, 1600); }
+  catch (e) { setStatus('copyStatus', '자동 복사가 막혀 있어요. 다른 브라우저에서 다시 눌러 주세요.', 'err'); }
+});
 $('apiKey').value = getKey();
-$('apiKey').addEventListener('change', () => { setKey($('apiKey').value.trim()); refreshEngine(); });
+updateShareRow();
+$('apiKey').addEventListener('change', () => { setKey($('apiKey').value.trim()); updateShareRow(); refreshEngine(); });
 
 (async () => {
   if (window.claude && typeof window.claude.use === 'function') {
@@ -755,6 +777,7 @@ $('apiKey').addEventListener('change', () => { setKey($('apiKey').value.trim());
     setBusy(false);
   } else {
     refreshEngine();
+    if (window.__keyFromLink) setStatus('genStatus', '바로 쓸 준비가 됐어요. 리뷰 캡처를 붙여넣어 보세요.', 'ok');
   }
 })();
 setBusy(false);
