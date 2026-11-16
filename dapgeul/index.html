@@ -277,7 +277,7 @@ const $ = id => document.getElementById(id);
 let sample = null, canImages = false, images = [], busy = false, readTimer = null, finished = false, inClaude = false;
 
 /* ---------- AI 연결: claude.ai 안에서는 내장 AI, 그 밖(GitHub Pages 등)에서는 사용자의 Gemini 무료 키 ---------- */
-const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite']; /* 앞 모델이 없으면 다음 모델로 */
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.8-flash']; /* 2026-11-16 실측: 3.6 Flash가 가장 빠름, 3.8은 붐빔 */ /* 앞 모델이 없으면 다음 모델로 */
 const KKEY = 'dapgeul-gemini-key';
 function getKey() { try { return localStorage.getItem(KKEY) || ''; } catch (e) { return ''; } }
 function setKey(k) { try { k ? localStorage.setItem(KKEY, k) : localStorage.removeItem(KKEY); } catch (e) {} }
@@ -291,7 +291,7 @@ function parseJSON(text) {
   return JSON.parse(t.slice(a, z + 1));
 }
 /* 되는 모델과 '생각 끄기' 설정을 기억해 두고 다음부터 바로 쓴다 (헛걸음 호출 줄이기) */
-const CKEY = 'dapgeul-gemini-cfg';
+const CKEY = 'dapgeul-gemini-cfg-v2';
 const THINK_VARIANTS = [{ thinkingLevel: 'minimal' }, { thinkingBudget: 0 }, null];
 let gcfg = { model: 0, think: 0 };
 let sessAlt = 0; /* 이번에 붐볐던 모델은 페이지를 닫을 때까지 건너뛴다 */
@@ -316,12 +316,18 @@ const keySample = {
       const generationConfig = { responseMimeType: 'application/json', temperature: 0.7 };
       if (think) generationConfig.thinkingConfig = think;
       let res;
+      const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 15000); /* 15초 넘게 답이 없으면 끊고 다른 모델로 */
       try {
         res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-          method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+          method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, signal: ac.signal,
           body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig })
         });
-      } catch (e) { throw { message: '인터넷 연결을 확인해 주세요' }; }
+      } catch (e) {
+        clearTimeout(timer);
+        if (e && e.name === 'AbortError') { sawBusy = true; alt++; continue; }
+        throw { message: '인터넷 연결을 확인해 주세요' };
+      }
+      clearTimeout(timer);
       const data = await res.json().catch(() => ({}));
       const msg = (data.error && data.error.message) || '';
       if (res.status === 404) { if (alt) alt++; else { gcfg.model++; gcfg.think = 0; saveCfg(); } continue; }
