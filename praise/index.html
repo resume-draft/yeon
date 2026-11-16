@@ -21,7 +21,6 @@
 :root{
   --bg:#FBF5EA; --surface:#FFFDF8; --ink:#5B3B2A; --muted:#8C7262; --line:#EADFCB;
   --stamp-ink:#D0675B; --accent:#B8573F; --accent-ink:#FFFFFF; --soft:#F6ECDC;
-  --plum:#F9C99B; --plum-soft:#F5E8E7; --plum-ink:#A8653A; --sage:#DED8B4; --sage-ink:#6F6A3E; --blush-ink:#A46F78; --wgray:#DACBC3;
   --display:"Jua","Gowun Dodum",system-ui,sans-serif;
   --body:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
   color-scheme:light;
@@ -90,44 +89,13 @@ h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
 .dateform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%}
 .dateform input{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 
-.pengrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.pcard{background:var(--surface);border:1.5px solid var(--wgray);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.pcard.soft{background:var(--plum-soft);border-color:transparent}
-.pcard h3{font-family:var(--display);font-weight:400;font-size:clamp(16px,4.6vw,19px);margin:0;word-break:keep-all}
-.pcard .cap{font-size:12px;color:var(--muted)}
-.big{display:flex;align-items:baseline;gap:6px;font-family:var(--display);color:var(--ink);text-shadow:-2px -2px 0 var(--plum),2px -2px 0 var(--plum),-2px 2px 0 var(--plum),2px 2px 0 var(--plum),0 3px 0 var(--plum);line-height:1;margin:4px 0 6px}
-.big b{font-weight:400;font-size:clamp(44px,13vw,60px);font-variant-numeric:tabular-nums}
-.big span{font-size:20px;opacity:.75}
-.tot{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;font-size:14px;color:var(--muted)}
-.tot b{font-family:var(--display);font-weight:400;color:var(--plum-ink);font-size:16px}
-.check{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.6);display:grid;place-items:center;color:var(--blush-ink);font-size:18px}
-.pcard.soft p{margin:0;word-break:keep-all;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
-.pcard.soft p b{color:var(--blush-ink);font-weight:400;font-family:var(--display);font-size:17px}
-.penbtns{display:flex;gap:8px}
-.penbtns button{flex:1;border-radius:14px;padding:12px;font-family:var(--display);font-size:16px}
-.btn-plum{background:var(--plum);color:var(--ink);border:0}
-.btn-plum:disabled{opacity:.5;cursor:default}
-.btn-line{background:var(--sage);color:var(--ink);border:0}
-.btn-line:disabled{opacity:.55;cursor:default}
-.stepper{display:flex;align-items:center;gap:10px}
-.stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1}
-.stepper output{font-family:var(--display);font-size:28px;color:var(--plum-ink);min-width:2.2em;text-align:center;font-variant-numeric:tabular-nums}
-.compose input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg)}
-
-.seg{display:flex;gap:4px;background:var(--plum-soft);border-radius:14px;padding:4px;align-self:flex-start;max-width:100%;overflow-x:auto}
-.seg button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:7px 14px;font-size:14px;white-space:nowrap}
-.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(164,111,120,.2)}
 .log ol{margin:0;padding:0}
-.log li{list-style:none;display:grid;grid-template-columns:42px 1fr auto;gap:12px;padding:12px 0;border-top:1px dashed var(--line);align-items:start}
+.log li{list-style:none;display:grid;grid-template-columns:44px 1fr;gap:12px;padding:12px 0;border-top:1px dashed var(--line)}
 .log li:first-child{border-top:0}
-.ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:17px;background:#F8E3DD;color:var(--stamp-ink)}
-.ico.pen{background:#FCE4CC;color:var(--plum-ink)}
-.ico.set{background:var(--sage);color:var(--ink)}
+.no{font-family:var(--display);color:var(--stamp-ink);font-size:16px;font-variant-numeric:tabular-nums}
 .log .txt{min-width:0}
-.log .txt b{font-family:var(--display);font-weight:400;font-size:16px}
-.log .txt p{margin:0;overflow-wrap:anywhere;color:var(--muted);font-size:14px}
-.log .side{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
-.log time,.log .side small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.log .txt p{margin:0;overflow-wrap:anywhere}
+.log time{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:10px 0;margin:0}
 .note{font-size:12px;color:var(--muted);text-align:center;margin:0}
 .admin{display:flex;justify-content:center}
@@ -159,11 +127,8 @@ h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
 
   <section class="dday" id="dday"></section>
 
-  <section aria-label="벌매와 정산" id="pen" style="display:flex;flex-direction:column;gap:12px"></section>
-
   <section class="card log" aria-labelledby="logTitle">
-    <h2 id="logTitle">차곡차곡 쌓인 기록</h2>
-    <div class="seg" role="tablist" id="logTabs"></div>
+    <h2 id="logTitle">칭찬 기록</h2>
     <div id="log"></div>
   </section>
   <p class="note" id="status">기록을 불러오는 중이에요.</p>
@@ -182,9 +147,7 @@ const PRESETS = {
   "마음": ["힘든 하루 잘 버텼어","속상한 일 털어놨어","스스로 칭찬해줬어","새로운 거 도전했어","화 안 내고 넘겼어","쉬어야 할 때 잘 쉬었어"],
   "우리": ["먼저 연락해줬어","보고 싶다고 말해줬어","고맙다고 말해줬어","약속 시간 잘 지켰어","내 얘기 잘 들어줬어"]
 };
-const PEN_PRESETS=["늦게 잤어","밥 걸렀어","연락이 안 됐어","약속에 늦었어","너무 무리했어","과식했어"];
-const LOG_TABS=[["all","전체"],["praise","칭찬"],["pen","벌매"],["set","정산"]];
-let events=[], penPanel=null, penN=1, logFilter="all", confirmDel=null;
+let events=[];
 let presetGroup="생활", stamps=[], startDate="", viewBoard=null, panel=null, editingDate=false, justStamped=null, canWrite=false, store=null;
 const $=id=>document.getElementById(id);
 const PIN_KEY="yeon-pin"; let pin=""; try{pin=localStorage.getItem(PIN_KEY)||"";}catch(e){}
@@ -274,85 +237,11 @@ function render(){
   sb.hidden=!canWrite||(panel&&panel.type==="compose");
   sb.textContent=!isLatest?"최신 판으로 가서 도장 찍기":(full?"새 병에 도장 찍기":"칭찬 도장 찍기");
 
-  renderPen();
-  renderLog();
+  const lg=$("log");
+  if(!stamps.length)lg.innerHTML=`<p class="empty">아직 찍힌 도장이 없어요.<br>첫 칭찬을 남기면 여기에 쌓여요.</p>`;
+  else lg.innerHTML="<ol>"+stamps.map((s,i)=>({s,i})).reverse().map(({s,i})=>`<li><span class="no">#${i+1}</span><div class="txt"><p>${esc(s.reason)}</p><time>${kstShort.format(new Date(s.at))}</time></div></li>`).join("")+"</ol>";
 }
 
-function penStats(){
-  let pending=0,total=0;
-  events.forEach(e=>{if(e.kind==="pen"){pending+=e.n;total+=e.n;}else pending=0;});
-  return {pending,total,settles:events.filter(e=>e.kind==="set")};
-}
-function renderPen(){
-  const {pending,total,settles}=penStats(), last=settles[settles.length-1];
-  let h=`<div class="pengrid">
-    <div class="pcard"><h3>벌매 현황</h3><span class="cap">이번 판 누적</span>
-      <div class="big"><b>${pending}</b><span>대</span></div>
-      <div class="tot"><span>전체 누적</span><b>${total}대</b></div></div>
-    <div class="pcard soft"><div class="check" aria-hidden="true">✓</div><h3>지금까지 모은 칭찬</h3>
-      <p>총 <b>${stamps.length}</b>개의 칭찬과<br><b>${settles.length}</b>번의 정산이 쌓였어요.</p>
-      ${last?`<p style="font-size:12px">마지막 정산 ${kstShort.format(new Date(last.at)).slice(0,13)}</p>`:""}</div>
-  </div>`;
-  if(canWrite&&penPanel==="add"){
-    h+=`<form class="compose" id="pform">
-      <label>몇 대 추가할까요?</label>
-      <div class="stepper"><button type="button" id="pminus" aria-label="한 대 빼기">−</button><output id="pn">${penN}</output><span style="color:var(--muted)">대</span><button type="button" id="pplus" aria-label="한 대 더하기">+</button></div>
-      <label for="preason">이유</label>
-      <textarea id="preason" maxlength="100" placeholder="새벽 세 시까지 안 잤어" required></textarea>
-      <div class="chips">${PEN_PRESETS.map(t=>`<button type="button" class="chip">${t}</button>`).join("")}</div>
-      <div class="row"><button type="button" class="ghost" id="pcancel">취소</button><button class="btn-plum" id="psave" style="flex:1;border-radius:14px;padding:14px;font-family:var(--display);font-size:17px">벌매 기록</button></div>
-    </form>`;
-  }else if(canWrite&&penPanel==="settle"){
-    h+=`<form class="compose" id="sform">
-      <label>이번 판 벌매 <b style="color:var(--plum-ink)">${pending}대</b>를 정산할까요? 정산하면 이번 판 누적이 0대로 돌아가요.</label>
-      <label for="snote" style="font-size:13px;color:var(--muted)">한마디 (선택)</label>
-      <input type="text" id="snote" maxlength="100" placeholder="이번 주 벌매 끝!">
-      <div class="row"><button type="button" class="ghost" id="scancel">취소</button><button class="btn-line" id="ssave" style="flex:1;border-radius:14px;padding:14px;font-family:var(--display);font-size:17px">정산 완료</button></div>
-    </form>`;
-  }else if(canWrite){
-    h+=`<div class="penbtns"><button class="btn-plum" id="padd">벌매 추가</button><button class="btn-line" id="pset"${pending?"":" disabled"}>정산하기</button></div>`;
-  }
-  $("pen").innerHTML=h;
-  if($("padd"))$("padd").onclick=()=>{penPanel="add";penN=1;render();setTimeout(()=>$("preason")&&$("preason").focus(),0);};
-  if($("pset"))$("pset").onclick=()=>{penPanel="settle";render();};
-  if($("pform")){
-    const ta=$("preason");
-    $("pminus").onclick=()=>{penN=Math.max(1,penN-1);$("pn").textContent=penN;};
-    $("pplus").onclick=()=>{penN=Math.min(99,penN+1);$("pn").textContent=penN;};
-    $("pen").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ta.value=c.textContent;ta.focus();});
-    $("pcancel").onclick=()=>{penPanel=null;render();};
-    $("pform").onsubmit=async e=>{e.preventDefault();const r=ta.value.trim();if(!r)return;$("psave").disabled=true;
-      try{await store.add(`⟦벌매:${penN}⟧ ${r}`);penPanel=null;render();toast(`벌매 ${penN}대를 기록했어요`);}
-      catch(err){$("psave").disabled=false;toast(writeErr(err));}};
-  }
-  if($("sform")){
-    $("scancel").onclick=()=>{penPanel=null;render();};
-    $("sform").onsubmit=async e=>{e.preventDefault();$("ssave").disabled=true;const n=penStats().pending;
-      try{await store.add(`⟦정산:${n}⟧ ${$("snote").value.trim()}`.trim());penPanel=null;render();toast("정산을 마쳤어요");}
-      catch(err){$("ssave").disabled=false;toast(writeErr(err));}};
-  }
-}
-function renderLog(){
-  $("logTabs").innerHTML=LOG_TABS.map(([k,t])=>`<button role="tab" aria-selected="${k===logFilter}" data-k="${k}">${t}</button>`).join("");
-  $("logTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{logFilter=b.dataset.k;renderLog();});
-  const items=[...stamps.map((s,i)=>({...s,kind:"praise",i})),...events].sort((a,b)=>String(b.at).localeCompare(String(a.at)));
-  let setNo=0; const setIdx={}; events.forEach(e=>{if(e.kind==="set")setIdx[e.id]=++setNo;});
-  const list=items.filter(x=>logFilter==="all"||x.kind===logFilter);
-  const lg=$("log");
-  if(!list.length){lg.innerHTML=`<p class="empty">${logFilter==="pen"?"아직 벌매 기록이 없어요.":logFilter==="set"?"아직 정산한 적이 없어요.":"아직 쌓인 기록이 없어요.<br>첫 칭찬을 남기면 여기에 쌓여요."}</p>`;return;}
-  lg.innerHTML="<ol>"+list.map(x=>{
-    const date=kstShort.format(new Date(x.at)).slice(0,13);
-    let ico,title,body,side;
-    if(x.kind==="praise"){ico=`<span class="ico" aria-hidden="true">♡</span>`;title="칭찬 도장 +1";body=x.reason;side=`${Math.floor(x.i/PER)+1}번째 판`;}
-    else if(x.kind==="pen"){ico=`<span class="ico pen" aria-hidden="true">!</span>`;title=`벌매 +${x.n}대`;body=x.note;side="벌매";}
-    else{ico=`<span class="ico set" aria-hidden="true">✓</span>`;title=`정산 완료 · ${x.n}대`;body=x.note||"이번 판 벌매를 정산했어요";side=`${setIdx[x.id]}번째 정산`;}
-    const del=canWrite&&x.kind!=="praise"?(confirmDel===x.id?`<span style="font-size:12px">지울까요? <button class="danger" data-yes="${x.id}">지우기</button> <button class="linkbtn" data-no="1">취소</button></span>`:`<button class="linkbtn" data-del="${x.id}" style="font-size:12px;color:var(--muted)">지우기</button>`):"";
-    return `<li>${ico}<div class="txt"><b>${title}</b>${body?`<p>${esc(body)}</p>`:""}</div><div class="side"><time>${date}</time><small>${side}</small>${del}</div></li>`;
-  }).join("")+"</ol>";
-  lg.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{confirmDel=b.dataset.del;renderLog();});
-  lg.querySelectorAll("[data-no]").forEach(b=>b.onclick=()=>{confirmDel=null;renderLog();});
-  lg.querySelectorAll("[data-yes]").forEach(b=>b.onclick=async()=>{const id=b.dataset.yes;confirmDel=null;try{await store.remove(id);toast("기록을 지웠어요");}catch(err){toast(writeErr(err));}render();});
-}
 
 $("board").addEventListener("click",e=>{
   const b=e.target.closest(".slot");if(!b)return;
@@ -401,7 +290,7 @@ function renderMode(){
   m.hidden=false; m.textContent=canWrite?"도장 찍는 사람":"조회 전용";
   if(canWrite){
     a.innerHTML=`<button class="linkbtn" id="logout">이 기기에서 도장 찍기 끄기</button>`;
-    $("logout").onclick=()=>{pin="";try{localStorage.removeItem(PIN_KEY);}catch(e){}canWrite=false;panel=null;editingDate=false;penPanel=null;confirmDel=null;render();renderMode();};
+    $("logout").onclick=()=>{pin="";try{localStorage.removeItem(PIN_KEY);}catch(e){}canWrite=false;panel=null;editingDate=false;render();renderMode();};
   }else if(a.dataset.open==="1"){
     a.innerHTML=`<form class="pinform" id="pinform"><label for="pinIn">도장 비밀번호를 넣어 주세요</label><input id="pinIn" type="password" inputmode="numeric" autocomplete="current-password" required><button class="primary" id="pinBtn">확인</button><button type="button" class="ghost" id="pinCancel">취소</button></form>`;
     $("pinCancel").onclick=()=>{a.dataset.open="";renderMode();};
@@ -419,7 +308,7 @@ function renderMode(){
 async function refresh(){
   try{applyData(await api());
     $("status").textContent=canWrite?"칭찬을 찍으면 링크를 가진 모두에게 똑같이 보여요.":"보기 전용이에요. 새 칭찬은 1분마다 자동으로 불러와요.";
-    if(!panel&&!editingDate&&!penPanel&&!confirmDel)render();
+    if(!panel&&!editingDate)render();
   }catch(e){$("status").textContent="기록을 불러오지 못했어요. 잠시 뒤 새로고침해 주세요.";}
 }
 render();renderMode();
