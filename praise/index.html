@@ -21,7 +21,7 @@
 :root{
   --bg:#FBF5EA; --surface:#FFFDF8; --ink:#5B3B2A; --muted:#8C7262; --line:#EADFCB;
   --stamp-ink:#D0675B; --accent:#B8573F; --accent-ink:#FFFFFF; --soft:#F6ECDC;
-  --plum:#F9C99B; --plum-soft:#F5E8E7; --plum-ink:#A8653A; --sage:#D9D3B0; --sage-ink:#6F6A3E; --blush-ink:#A46F78; --wgray:#DACBC3;
+  --plum:#F9C99B; --plum-soft:#F5E8E7; --plum-ink:#A8653A; --sage:#DED8B4; --sage-ink:#6F6A3E; --blush-ink:#A46F78; --wgray:#DACBC3;
   --display:"Jua","Gowun Dodum",system-ui,sans-serif;
   --body:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
   color-scheme:light;
@@ -107,8 +107,8 @@ h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
 .penbtns button{flex:1;border-radius:14px;padding:12px;font-family:var(--display);font-size:16px}
 .btn-plum{background:var(--plum);color:var(--ink);border:0}
 .btn-plum:disabled{opacity:.5;cursor:default}
-.btn-line{background:#F1EEDB;color:var(--sage-ink);border:1.5px solid var(--sage)}
-.btn-line:disabled{opacity:.45;cursor:default}
+.btn-line{background:var(--sage);color:var(--ink);border:0}
+.btn-line:disabled{opacity:.55;cursor:default}
 .stepper{display:flex;align-items:center;gap:10px}
 .stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1}
 .stepper output{font-family:var(--display);font-size:28px;color:var(--plum-ink);min-width:2.2em;text-align:center;font-variant-numeric:tabular-nums}
@@ -122,7 +122,7 @@ h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
 .log li:first-child{border-top:0}
 .ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:17px;background:#F8E3DD;color:var(--stamp-ink)}
 .ico.pen{background:#FCE4CC;color:var(--plum-ink)}
-.ico.set{background:#ECE8CF;color:var(--sage-ink)}
+.ico.set{background:var(--sage);color:var(--ink)}
 .log .txt{min-width:0}
 .log .txt b{font-family:var(--display);font-weight:400;font-size:16px}
 .log .txt p{margin:0;overflow-wrap:anywhere;color:var(--muted);font-size:14px}
@@ -307,7 +307,7 @@ function renderPen(){
       <label>이번 판 벌매 <b style="color:var(--plum-ink)">${pending}대</b>를 정산할까요? 정산하면 이번 판 누적이 0대로 돌아가요.</label>
       <label for="snote" style="font-size:13px;color:var(--muted)">한마디 (선택)</label>
       <input type="text" id="snote" maxlength="100" placeholder="이번 주 벌매 끝!">
-      <div class="row"><button type="button" class="ghost" id="scancel">취소</button><button class="btn-plum" id="ssave" style="flex:1;border-radius:14px;padding:14px;font-family:var(--display);font-size:17px">정산 완료</button></div>
+      <div class="row"><button type="button" class="ghost" id="scancel">취소</button><button class="btn-line" id="ssave" style="flex:1;border-radius:14px;padding:14px;font-family:var(--display);font-size:17px">정산 완료</button></div>
     </form>`;
   }else if(canWrite){
     h+=`<div class="penbtns"><button class="btn-plum" id="padd">벌매 추가</button><button class="btn-line" id="pset"${pending?"":" disabled"}>정산하기</button></div>`;
