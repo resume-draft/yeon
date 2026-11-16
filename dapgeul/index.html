@@ -290,7 +290,12 @@ function parseJSON(text) {
   if (a < 0 || z < a) throw { message: 'AI 응답에서 JSON을 찾지 못함' };
   return JSON.parse(t.slice(a, z + 1));
 }
-let modelIndex = 0;
+/* 되는 모델과 '생각 끄기' 설정을 기억해 두고 다음부터 바로 쓴다 (헛걸음 호출 줄이기) */
+const CKEY = 'dapgeul-gemini-cfg';
+const THINK_VARIANTS = [{ thinkingLevel: 'minimal' }, { thinkingBudget: 0 }, null];
+let gcfg = { model: 0, think: 0 };
+try { gcfg = Object.assign(gcfg, JSON.parse(localStorage.getItem(CKEY) || '{}')); } catch (e) {}
+function saveCfg() { try { localStorage.setItem(CKEY, JSON.stringify(gcfg)); } catch (e) {} }
 const keySample = {
   async json(prompt, opts) {
     const key = getKey();
@@ -300,30 +305,34 @@ const keySample = {
       parts.push({ inline_data: { mime_type: b.type || 'image/jpeg', data: await blobToBase64(b) } });
     }
     parts.push({ text: prompt });
-    const body = JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.7 } });
-    while (modelIndex < GEMINI_MODELS.length) {
-      const model = GEMINI_MODELS[modelIndex];
+    for (let guard = 0; guard < 8; guard++) {
+      if (gcfg.model >= GEMINI_MODELS.length) { gcfg = { model: 0, think: 0 }; saveCfg(); throw { message: '쓸 수 있는 Gemini 무료 모델을 찾지 못했어요' }; }
+      const model = GEMINI_MODELS[gcfg.model];
+      const think = THINK_VARIANTS[Math.min(gcfg.think, THINK_VARIANTS.length - 1)];
+      const generationConfig = { responseMimeType: 'application/json', temperature: 0.7 };
+      if (think) generationConfig.thinkingConfig = think;
       let res;
       try {
         res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-          method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body
+          method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig })
         });
       } catch (e) { throw { message: '인터넷 연결을 확인해 주세요' }; }
       const data = await res.json().catch(() => ({}));
       const msg = (data.error && data.error.message) || '';
-      if (res.status === 404) { modelIndex++; continue; }
+      if (res.status === 404) { gcfg.model++; gcfg.think = 0; saveCfg(); continue; }
+      if (res.status === 400 && /think/i.test(msg) && think) { gcfg.think++; saveCfg(); continue; }
       if (!res.ok) {
         if (/API key|API_KEY/i.test(msg) || res.status === 401 || res.status === 403) throw { code: 'bad_key' };
         if (res.status === 429) throw { code: 'rate_limited' };
         throw { message: msg || ('HTTP ' + res.status) };
       }
       const cand = (data.candidates || [])[0];
-      const text = ((cand && cand.content && cand.content.parts) || []).map(x => x.text || '').join('');
+      const text = ((cand && cand.content && cand.content.parts) || []).filter(x => !x.thought).map(x => x.text || '').join('');
       if (!text) throw { message: '빈 응답을 받았어요' + (cand && cand.finishReason ? ' (' + cand.finishReason + ')' : '') };
       return parseJSON(text);
     }
-    modelIndex = 0;
-    throw { message: '쓸 수 있는 Gemini 무료 모델을 찾지 못했어요' };
+    throw { message: '응답을 받지 못했어요' };
   }
 };
 function refreshEngine() {
@@ -521,11 +530,11 @@ document.addEventListener('paste', e => {
 async function shrink(file) {
   try {
     const bmp = await createImageBitmap(file);
-    const scale = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+    const scale = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
     const c = document.createElement('canvas');
     c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
     c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-    return await new Promise(res => c.toBlob(b => res(b || file), 'image/jpeg', 0.88));
+    return await new Promise(res => c.toBlob(b => res(b || file), 'image/jpeg', 0.82));
   } catch (e) { return file; }
 }
 
@@ -548,7 +557,7 @@ async function takeImages(files) {
   renderThumbs();
   clearTimeout(readTimer);
   setStatus('readStatus', '<span class="spin"></span>사진을 받았어요. 곧 읽기 시작해요…');
-  readTimer = setTimeout(() => { readTimer = null; readReview(true); }, 1200);
+  readTimer = setTimeout(() => { readTimer = null; readReview(); }, 400);
 }
 
 function setStatus(id, msg, cls) { const el = $(id); el.className = 'status' + (cls ? ' ' + cls : ''); el.innerHTML = msg; }
@@ -572,37 +581,17 @@ function renderSuggestions(list) {
   });
 }
 
-async function readReview(autoGenerate) {
-  if (!images.length) return;
-  if (!sample) { setStatus('readStatus', inClaude ? '이 화면에서는 AI가 캡처를 읽을 수 없어요. 리뷰 본문을 직접 붙여넣어 주세요.' : '사진을 읽으려면 맨 아래 설정에 AI 연결 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
-  if (!canImages) { setStatus('readStatus', '이 계정에서는 이미지 읽기를 쓸 수 없어요. 리뷰 본문을 직접 붙여넣어 주세요.', 'err'); return; }
-  setStatus('readStatus', `<span class="spin"></span>사진 ${images.length}장을 읽고 있어요. 잠시만 기다려 주세요…`);
-  const menuList = getSettings().menuList;
-  const prompt = `이미지들은 배달앱(배달의민족, 쿠팡이츠, 요기요 등)의 고객 리뷰 화면 캡처다. 여러 장이면 한 리뷰를 나눠 찍은 것이거나 리뷰 사진 확대본이다.
-고객 리뷰를 꼼꼼히 읽어 아래 JSON 하나만 반환하라. 설명은 쓰지 마라.
-
-[이 매장의 메뉴판]
-${menuList || '(없음)'}
-
-[읽는 규칙]
-- 별점: 채워진 별 개수를 센다. 숫자 표기(예: 1.0)가 있으면 그것을 따른다.
-- 주문 메뉴: 캡처에 보이는 메뉴 이름을 메뉴판의 정확한 이름으로 맞춘다 (예: "라볶이" → "치즈라볶이"). 메뉴판에 없으면 캡처에 적힌 그대로 쓴다. 옵션·수량 표기는 뺀다.
-- 리뷰 본문: 고객이 쓴 글자 그대로. 사장님 답글은 넣지 않는다.
-- 사진: 리뷰에 음식 사진이 있으면 무엇이 보이는지(쏟아짐, 탄 부분, 양, 이물 등) 구체적으로 한 문장. 메뉴판 이름으로 어떤 음식인지도 짚는다.
-- 기존 사장님 답글이 캡처에 보이면 글자 그대로 옮긴다.
-- 사장님이 답글에 쓸 만한 한 줄 메모를 3개 제안한다. 사장님 말투의 짧은 메모(25자 이내)로, 이 리뷰와 메뉴에 맞는 구체적 조치를 담는다. 매장이 실제로 했는지 모르는 일을 했다고 단정하지 말고 "~하겠다" 형태로 쓴다. 보상 약속은 넣지 않는다.
-
-{"nickname": 작성자 닉네임 또는 null,
- "rating": 별점 1–5 정수 또는 null,
- "menu": 메뉴판 이름으로 맞춘 주문 메뉴들을 쉼표로 이은 문자열 또는 "",
- "delivery": 배달 유형 표기(한집배달, 알뜰배달, 포장 등) 또는 null,
- "review": 리뷰 본문,
- "photo_note": 사진 설명 또는 null,
- "prev_reply": 기존 사장님 답글 또는 null,
- "suggested_notes": [메모 3개],
- "found": 고객 리뷰를 찾았으면 true}`;
+/* 사진이 들어오면 '읽기 + 답글 쓰기'를 한 번의 AI 호출로 끝낸다 */
+async function readReview() {
+  if (!images.length || busy) return;
+  if (!sample) { setStatus('readStatus', inClaude ? '이 화면에서는 AI가 사진을 읽을 수 없어요. 리뷰 글을 직접 붙여넣어 주세요.' : '사진을 읽으려면 맨 아래 설정에 AI 연결 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
+  if (!canImages) { setStatus('readStatus', '이 계정에서는 사진 읽기를 쓸 수 없어요. 리뷰 글을 직접 붙여넣어 주세요.', 'err'); return; }
+  setBusy(true);
+  const t0 = performance.now();
+  const tick = setInterval(() => setStatus('readStatus', `<span class="spin"></span>사진을 읽고 답글을 쓰고 있어요… ${Math.round((performance.now() - t0) / 1000)}초`), 1000);
+  setStatus('readStatus', '<span class="spin"></span>사진을 읽고 답글을 쓰고 있어요…');
   try {
-    const r = await sample.json(prompt, { images, modelTier: 'default' });
+    let r = await sample.json(buildPrompt('', true), { images, modelTier: 'default' });
     if (!r || r.found === false || !r.review) { setStatus('readStatus', '사진에서 리뷰 글을 찾지 못했어요. 리뷰 글이 보이게 다시 캡처해 주세요.', 'err'); return; }
     $('rating').value = r.rating ? String(Math.min(5, Math.max(1, Math.round(r.rating)))) : '';
     $('menu').value = r.menu || '';
@@ -610,60 +599,80 @@ ${menuList || '(없음)'}
     $('photoNote').value = r.photo_note || '';
     $('prevReply').value = r.prev_reply || '';
     renderSuggestions(r.suggested_notes);
-    const bits = [r.rating ? `별점 ${r.rating}점` : null, r.menu ? r.menu : null, r.photo_note ? '사진 확인' : null, r.prev_reply ? '기존 답글 있음' : null].filter(Boolean);
-    setStatus('readStatus', '사진을 읽었어요 (' + esc(bits.join(' · ')) + ')', 'ok');
-    if (autoGenerate) generate(undefined, '답글을 쓰고 있어요. 10초 정도 걸려요…');
+    if (typeof r.reply !== 'string' || !r.reply.trim()) r = await callAI();
+    else { ai.type = r.type || null; r = await fixIfNeeded(r); }
+    applyResult(r);
+    finished = true;
+    const sec = Math.round((performance.now() - t0) / 1000);
+    const bits = [r.rating || $('rating').value ? `별점 ${$('rating').value}점` : null, $('menu').value || null].filter(Boolean);
+    setStatus('readStatus', `다 됐어요 (${sec}초)${bits.length ? ' · ' + esc(bits.join(' · ')) : ''}`, 'ok');
+    setStatus('genStatus', '');
+    $('h-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { setStatus('readStatus', aiError(e), 'err'); }
+  finally { clearInterval(tick); setBusy(false); }
 }
 
 /* ---------- 답글 생성 ---------- */
 const GOOD_EXAMPLE = EXAMPLE.reply;
-function buildPrompt(extra) {
+function buildPrompt(extra, fromImage) {
   const s = getSettings();
   const lim = emojiLimit();
   const tone = s.tone === 'polite' ? '정중하고 단정한 존댓말' : '친근하고 따뜻한 존댓말(“~네요”, “~할게요” 허용)';
   const emojiRule = !s.useEmoji ? '이모티콘을 쓰지 않는다.'
+    : fromImage ? `이모티콘은 불만 리뷰(1–3점)면 ${s.emojiMax}개 이하, 칭찬 리뷰면 6개 이하, 이물·위생 리뷰면 쓰지 않는다.`
     : `이모티콘은 ${lim}개 이하로 쓴다. 이물·위생 리뷰라면 이모티콘을 쓰지 않는다.`;
-  return `너는 배달 음식점 사장님을 대신해 고객 리뷰 답글을 다듬는 도우미다.
-사장님의 한 줄 메모에 담긴 뜻은 살리되 아래 기준을 모두 지켜 답글 1개를 쓴다.
-
-[기준]
-1. 공감: 리뷰에 적힌 구체적 상황을 직접 언급하고, 고객이 느꼈을 감정(실망, 당황, 불편)을 인정한다.
-2. 책임 인정: 문제를 매장의 책임으로 말한다. 배달 기사, 라이더, 배달앱을 탓하지 않는다.
-3. 개선 약속: 리뷰 유형에 맞는 구체적 행동 1–2개를 적는다. 예: 포장·누수면 용기 밀폐와 국물 누수 확인.
-4. 말투: ${tone}. ${emojiRule} 불만 리뷰에서는 사과가 가볍게 읽히지 않게 한다.
-5. 금지: 고객에게 책임을 돌리는 표현(“바로 연락주셨으면”, “말씀해 주셨으면”, “미리 확인하셨으면” 등).
-   사장님 메모에 없는 환불·서비스·쿠폰·재배달 약속. “절대 없을 것”, “다시는 없도록” 같은 보장 표현.
-6. 길이: 공백 포함 ${s.maxChars}자 이내. 문단은 줄바꿈으로 나눈다.
-7. 칭찬 리뷰(불만 없이 만족)는 사과·개선 약속 없이 감사와 재주문 환영으로 쓴다.
-8. 고객 닉네임은 쓰지 말고 “고객님”이라고 부른다.
-9. 사장님 메모에 고객 탓이나 보장할 수 없는 약속이 있으면 답글에서 빼고, owner_note_warning에 무엇을 왜 뺐는지 한 문장으로 적는다.
-10. 리뷰·메모에 없는 사실(원인, 날짜, 직원 이름, 이미 바꾼 조치 등)을 지어내지 않는다.
-11. 메뉴 이름은 아래 매장 메뉴판의 정확한 이름으로 부른다. 메뉴 종류에 맞는 조치를 약속한다: 국물안주(치즈라볶이, 찌개, 탕, 술밥)와 양재기묵사발의 포장 문제면 용기 밀폐·국물 누수 확인. 빠삭파전과 튀김류(바삭똥집튀김, 옛날순살치킨, 바삭고추튀김, 촉촉식빵튀김, 칠리스치즈스틱, 허니갈릭감자튀김, 마빡새우깡)가 눅눅했다면 바삭함을 지키는 포장. 소스·음료·주류·공기밥이 빠졌다면 출발 전 주문서 대조 확인. 비빔육회처럼 날것 메뉴의 신선도 문제면 보관·온도 관리.
-12. 기존 사장님 답글이 있으면 그 뜻(사과, 약속)은 살리되, 고객 탓 표현은 빼고 기준에 맞게 다시 쓴다.${s.storeName ? `\n13. 매장 이름은 “${s.storeName}”이다. 꼭 넣을 필요는 없다.` : ''}${s.signoff ? `\n14. 마지막 줄은 “${s.signoff}”로 끝낸다.` : ''}
-
-[매장 메뉴판]
-${s.menuList || '(없음)'}
-
-[좋은 답글 예시: 포장 누수 1점 리뷰] 문장을 그대로 베끼지 말고, 이 리뷰에 맞게 새로 쓴다.
-${GOOD_EXAMPLE}
-
-[이번 리뷰]
+  const reviewPart = fromImage ? `[이번 리뷰]
+첨부한 사진들은 배달앱 고객 리뷰 화면 캡처다(여러 장이면 한 리뷰를 나눠 찍은 것이거나 사진 확대본). 사진에서 직접 읽는다.
+- 별점: 채워진 별 개수, 숫자 표기가 있으면 그 숫자.
+- 주문 메뉴: 메뉴판의 정확한 이름으로 맞춘다(예: "라볶이" → "치즈라볶이"). 메뉴판에 없으면 적힌 그대로. 옵션·수량은 뺀다.
+- 리뷰 본문: 고객이 쓴 글자 그대로. 사장님 답글은 넣지 않는다.
+- 음식 사진: 보이는 문제(쏟아짐, 탄 부분, 양, 이물 등)를 한 문장으로.
+- 기존 사장님 답글이 보이면 글자 그대로 옮기고, 그 뜻을 살려 새 답글을 쓴다.` : `[이번 리뷰]
 별점: ${$('rating').value || '모름'}
 주문 메뉴: ${$('menu').value.trim() || '모름'}
 리뷰 본문: ${$('review').value.trim()}
 사진에서 보이는 내용: ${$('photoNote').value.trim() || '없음'}
-기존 사장님 답글: ${$('prevReply').value.trim() || '없음'}
+기존 사장님 답글: ${$('prevReply').value.trim() || '없음'}`;
+  const readOut = fromImage ? `
+ "found": 사진에서 고객 리뷰를 찾았으면 true,
+ "rating": 별점 1–5 정수 또는 null,
+ "menu": 메뉴판 이름으로 맞춘 주문 메뉴(쉼표로 구분) 또는 "",
+ "review": 리뷰 본문,
+ "photo_note": 사진 설명 또는 null,
+ "prev_reply": 기존 사장님 답글 또는 null,
+ "suggested_notes": 사장님이 덧붙일 만한 짧은 메모 3개(25자 이내, "~하겠다" 형태, 보상 약속 없이),` : '';
+  return `너는 배달 음식점 사장님을 대신해 고객 리뷰 답글을 쓰는 도우미다.
+사장님의 한 줄 메모가 있으면 그 뜻은 살리되 아래 기준을 모두 지켜 답글 1개를 쓴다.
+
+[기준]
+1. 공감: 리뷰에 적힌 구체적 상황을 직접 언급하고, 고객이 느꼈을 감정(실망, 당황, 불편)을 인정한다.
+2. 책임 인정: 문제를 매장의 책임으로 말한다. 배달 기사, 라이더, 배달앱을 탓하지 않는다.
+3. 개선 약속: 리뷰 유형에 맞는 구체적 행동 1–2개를 적는다.
+4. 말투: ${tone}. ${emojiRule} 불만 리뷰에서는 사과가 가볍게 읽히지 않게 한다.
+5. 금지: 고객에게 책임을 돌리는 표현(“바로 연락주셨으면”, “말씀해 주셨으면”, “미리 확인하셨으면” 등). 사장님 메모에 없는 환불·서비스·쿠폰·재배달 약속. “절대 없을 것”, “다시는 없도록” 같은 보장 표현.
+6. 길이: 공백 포함 ${s.maxChars}자 이내. 문단은 줄바꿈으로 나눈다.
+7. 칭찬 리뷰는 사과·개선 약속 없이 감사와 재주문 환영으로 쓴다.
+8. 고객 닉네임은 쓰지 말고 “고객님”이라고 부른다.
+9. 사장님 메모나 기존 답글에 고객 탓·보장할 수 없는 약속이 있으면 빼고, owner_note_warning에 무엇을 왜 뺐는지 한 문장으로 적는다.
+10. 리뷰·메모에 없는 사실(원인, 날짜, 직원 이름, 이미 바꾼 조치 등)을 지어내지 않는다.
+11. 메뉴 이름은 메뉴판의 정확한 이름으로 부르고, 메뉴에 맞는 조치를 약속한다: 국물안주(치즈라볶이, 찌개, 탕, 술밥)·양재기묵사발 포장 문제면 용기 밀폐·국물 누수 확인. 빠삭파전·튀김류가 눅눅했다면 바삭함을 지키는 포장. 소스·음료·주류·공기밥 누락이면 출발 전 주문서 대조. 날것 메뉴 신선도 문제면 보관·온도 관리.${s.storeName ? `\n12. 매장 이름은 “${s.storeName}”이다. 꼭 넣을 필요는 없다.` : ''}${s.signoff ? `\n13. 마지막 줄은 “${s.signoff}”로 끝낸다.` : ''}
+
+[매장 메뉴판]
+${s.menuList || '(없음)'}
+
+[좋은 답글 예시: 포장 누수 1점 리뷰] 문장을 그대로 베끼지 말고 이 리뷰에 맞게 새로 쓴다.
+${GOOD_EXAMPLE}
+
+${reviewPart}
 
 [사장님 한 줄 메모]
-${$('note').value.trim() || '(없음: 리뷰와 기존 답글만 보고 기준에 맞게 쓴다)'}
+${$('note').value.trim() || '(없음)'}
 ${extra ? '\n[추가 요청]\n' + extra + '\n' : ''}
-[출력] 아래 JSON 하나만 반환한다.
-{"type": "포장·누수", "누락", "맛", "양", "배달 지연", "이물", "위생", "응대", "칭찬", "기타" 중 하나,
+[출력] 아래 JSON 하나만 반환한다. 설명은 쓰지 않는다.
+{${readOut}
+ "type": "포장·누수", "누락", "맛", "양", "배달 지연", "이물", "위생", "응대", "칭찬", "기타" 중 하나,
  "reply": 답글 전체,
- "checks": {"empathy": 답글 속 공감 문장을 글자 그대로 인용,
-            "responsibility": 답글 속 책임 인정 문장을 글자 그대로 인용 (칭찬이면 null),
-            "improvement": 답글 속 개선 약속 문장을 글자 그대로 인용 (칭찬이면 null)},
+ "checks": {"empathy": 답글 속 공감 문장 그대로, "responsibility": 책임 인정 문장 그대로(칭찬이면 null), "improvement": 개선 약속 문장 그대로(칭찬이면 null)},
  "owner_note_warning": 문자열 또는 null}`;
 }
 
@@ -672,21 +681,20 @@ function setBusy(on) {
   document.querySelectorAll('#genBtn, [data-adjust]').forEach(b => { if (b.dataset.adjust !== 'noemoji') b.disabled = on || !sample; });
 }
 
+/* 고객 탓·보상 약속 같은 금지 표현이 있을 때만 한 번 더 고쳐 쓴다. 글자 수·이모티콘은 화면 점검으로 알려 주기만 한다. */
+async function fixIfNeeded(r, extra) {
+  const rep = ruleReport(r.reply);
+  if (!rep.hits.length) return r;
+  const fix = `${extra ? extra + '\n' : ''}아래 답글에 쓰면 안 되는 표현이 있다. 그 부분만 기준에 맞게 고쳐 써라.\n[이전 답글]\n${r.reply}\n[빼야 할 표현]\n${rep.hits.map(h => '“' + h.phrase + '” (' + h.kind + ')').join('\n')}`;
+  const r2 = await sample.json(buildPrompt(fix, false), { modelTier: 'default' });
+  return (r2 && typeof r2.reply === 'string') ? Object.assign({}, r, r2) : r;
+}
+
 async function callAI(extra) {
-  let r = await sample.json(buildPrompt(extra), { modelTier: 'default' });
+  const r = await sample.json(buildPrompt(extra, false), { modelTier: 'default' });
   if (!r || typeof r.reply !== 'string') throw { message: '답글 형식이 맞지 않음' };
   ai.type = r.type || null;
-  const rep = ruleReport(r.reply);
-  const problems = [];
-  rep.hits.forEach(h => problems.push(`“${h.phrase}” (${h.kind}) 표현을 빼라.`));
-  if (rep.emoji > rep.emojiMax) problems.push(`이모티콘이 ${rep.emoji}개다. ${rep.emojiMax}개 이하로 줄여라.`);
-  if (rep.len > rep.maxChars) problems.push(`${rep.len}자다. ${rep.maxChars}자 이내로 줄여라.`);
-  if (problems.length) {
-    const fix = `${extra ? extra + '\n' : ''}아래 답글에 문제가 있다. 기준을 지켜 고쳐 써라.\n[이전 답글]\n${r.reply}\n[문제]\n${problems.join('\n')}`;
-    const r2 = await sample.json(buildPrompt(fix), { modelTier: 'default' });
-    if (r2 && typeof r2.reply === 'string') r = r2;
-  }
-  return r;
+  return fixIfNeeded(r, extra);
 }
 
 function applyResult(r) {
@@ -703,16 +711,16 @@ function applyResult(r) {
 
 async function generate(extra, label) {
   if (busy) return;
-  if (!$('review').value.trim()) { setStatus('genStatus', '아직 리뷰가 없어요. 위에서 리뷰 사진을 먼저 골라 주세요.', 'err'); $('review').focus(); return; }
+  if (!$('review').value.trim()) { setStatus('genStatus', '아직 리뷰가 없어요. 위에서 리뷰 사진을 먼저 골라 주세요.', 'err'); return; }
   if (!sample) { setStatus('genStatus', inClaude ? '이 화면에서는 AI를 쓸 수 없어요. 아래 3번 칸에 답글을 직접 쓰면 점검은 계속 돼요.' : '답글을 만들려면 맨 아래 설정에 AI 연결 키를 넣어 주세요.', 'err'); if (!inClaude) $('settings').open = true; return; }
-  hideExample();
   setBusy(true);
-  setStatus('genStatus', `<span class="spin"></span>${label || '기준에 맞춰 답글을 다듬는 중…'}`);
+  const t0 = performance.now();
+  setStatus('genStatus', `<span class="spin"></span>${label || '답글을 쓰고 있어요…'}`);
   try {
     const r = await callAI(extra);
     applyResult(r);
     finished = true;
-    setStatus('genStatus', '답글이 나왔어요. 아래 3번에서 확인하세요.', 'ok');
+    setStatus('genStatus', `답글이 나왔어요 (${Math.round((performance.now() - t0) / 1000)}초). 아래 3번에서 확인하세요.`, 'ok');
     $('h-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     setStatus('genStatus', aiError(e), 'err');
