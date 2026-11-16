@@ -58,7 +58,7 @@ h2 { font-family: var(--font-display); font-size: 17px; margin: 0; display: flex
 .chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
 .chip.type { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 700; }
 label { font-size: 13px; font-weight: 500; color: var(--muted); display: block; margin-bottom: 4px; }
-input[type="text"], input[type="number"], select, textarea {
+input[type="text"], input[type="number"], input[type="password"], select, textarea {
   width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
 }
 textarea { resize: vertical; }
@@ -139,8 +139,8 @@ details.settings summary { cursor: pointer; font-weight: 700; font-size: 14px; }
     <summary>매장 설정 (매장 이름·메뉴·말투·이모티콘·글자 수)</summary>
     <div class="settings-grid">
       <div style="grid-column:1/-1"><label for="apiKey">Gemini API 키 (무료, AI 사용에 필요)</label>
-        <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="AIza로 시작하는 키를 붙여넣으세요">
-        <span class="foot" id="keyNote"><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 구글 계정으로 무료 키를 만들 수 있어요(결제 등록 없이). 키는 이 브라우저에만 저장되고 Google로만 전송돼요. 무료 등급은 하루 사용량 한도가 있고, 보낸 내용이 Google 제품 개선에 쓰일 수 있어요. 공용 컴퓨터에서는 넣지 마세요.</span></div>
+        <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="AI Studio에서 복사한 키를 붙여넣으세요">
+        <span class="foot" id="keyNote" style="display:block;margin-top:4px"><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 구글 계정으로 무료 키를 만들 수 있어요(결제 등록 없이). 키는 이 브라우저에만 저장되고 Google로만 전송돼요. 무료 등급은 하루 사용량 한도가 있고, 보낸 내용이 Google 제품 개선에 쓰일 수 있어요. 공용 컴퓨터에서는 넣지 마세요.</span></div>
       <div><label for="storeName">매장 이름</label><input type="text" id="storeName" value="79대포 창원팔용점"></div>
       <div><label for="tone">말투</label>
         <select id="tone"><option value="friendly">친근하게</option><option value="polite">정중하게</option></select></div>
