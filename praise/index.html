@@ -14,7 +14,7 @@
 :root{
   --bg:#FBF5EA; --surface:#FFFDF8; --ink:#5B3B2A; --muted:#8C7262; --line:#EADFCB;
   --stamp-ink:#D0675B; --accent:#B8573F; --accent-ink:#FFFFFF; --soft:#F6ECDC;
-  --plum:#4197AA; --plum-soft:#E2F1F4; --plum-ink:#2C7384;
+  --plum:#F9C99B; --plum-soft:#F5E8E7; --plum-ink:#A8653A; --sage:#D9D3B0; --sage-ink:#6F6A3E; --blush-ink:#A46F78; --wgray:#DACBC3;
   --display:"Jua","Gowun Dodum",system-ui,sans-serif;
   --body:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
   color-scheme:light;
@@ -84,38 +84,38 @@ h2{font-family:var(--display);font-weight:400;font-size:21px;margin:0}
 .dateform input{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 
 .pengrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.pcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pcard{background:var(--surface);border:1.5px solid var(--wgray);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .pcard.soft{background:var(--plum-soft);border-color:transparent}
 .pcard h3{font-family:var(--display);font-weight:400;font-size:clamp(16px,4.6vw,19px);margin:0;word-break:keep-all}
 .pcard .cap{font-size:12px;color:var(--muted)}
-.big{display:flex;align-items:baseline;gap:6px;font-family:var(--display);color:var(--plum);line-height:1;margin:4px 0 6px}
+.big{display:flex;align-items:baseline;gap:6px;font-family:var(--display);color:var(--ink);text-shadow:-2px -2px 0 var(--plum),2px -2px 0 var(--plum),-2px 2px 0 var(--plum),2px 2px 0 var(--plum),0 3px 0 var(--plum);line-height:1;margin:4px 0 6px}
 .big b{font-weight:400;font-size:clamp(44px,13vw,60px);font-variant-numeric:tabular-nums}
 .big span{font-size:20px;opacity:.75}
 .tot{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;font-size:14px;color:var(--muted)}
 .tot b{font-family:var(--display);font-weight:400;color:var(--plum-ink);font-size:16px}
-.check{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.6);display:grid;place-items:center;color:var(--plum-ink);font-size:18px}
-.pcard.soft p{margin:0;word-break:keep-all;color:#5E7C83;font-size:14px;font-variant-numeric:tabular-nums}
-.pcard.soft p b{color:var(--plum-ink);font-weight:400;font-family:var(--display);font-size:17px}
+.check{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.6);display:grid;place-items:center;color:var(--blush-ink);font-size:18px}
+.pcard.soft p{margin:0;word-break:keep-all;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.pcard.soft p b{color:var(--blush-ink);font-weight:400;font-family:var(--display);font-size:17px}
 .penbtns{display:flex;gap:8px}
 .penbtns button{flex:1;border-radius:14px;padding:12px;font-family:var(--display);font-size:16px}
-.btn-plum{background:var(--plum);color:#fff;border:0}
+.btn-plum{background:var(--plum);color:var(--ink);border:0}
 .btn-plum:disabled{opacity:.5;cursor:default}
-.btn-line{background:var(--surface);color:var(--plum-ink);border:1px solid var(--plum)}
+.btn-line{background:#F1EEDB;color:var(--sage-ink);border:1.5px solid var(--sage)}
 .btn-line:disabled{opacity:.45;cursor:default}
 .stepper{display:flex;align-items:center;gap:10px}
 .stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1}
-.stepper output{font-family:var(--display);font-size:28px;color:var(--plum);min-width:2.2em;text-align:center;font-variant-numeric:tabular-nums}
+.stepper output{font-family:var(--display);font-size:28px;color:var(--plum-ink);min-width:2.2em;text-align:center;font-variant-numeric:tabular-nums}
 .compose input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg)}
 
 .seg{display:flex;gap:4px;background:var(--plum-soft);border-radius:14px;padding:4px;align-self:flex-start;max-width:100%;overflow-x:auto}
 .seg button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:7px 14px;font-size:14px;white-space:nowrap}
-.seg button[aria-selected="true"]{background:var(--surface);color:var(--plum-ink);box-shadow:0 1px 2px rgba(44,115,132,.18)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(164,111,120,.2)}
 .log ol{margin:0;padding:0}
 .log li{list-style:none;display:grid;grid-template-columns:42px 1fr auto;gap:12px;padding:12px 0;border-top:1px dashed var(--line);align-items:start}
 .log li:first-child{border-top:0}
 .ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:17px;background:#F8E3DD;color:var(--stamp-ink)}
-.ico.pen{background:var(--plum-soft);color:var(--plum-ink)}
-.ico.set{background:#D3EAEE;color:#2C7384}
+.ico.pen{background:#FCE4CC;color:var(--plum-ink)}
+.ico.set{background:#ECE8CF;color:var(--sage-ink)}
 .log .txt{min-width:0}
 .log .txt b{font-family:var(--display);font-weight:400;font-size:16px}
 .log .txt p{margin:0;overflow-wrap:anywhere;color:var(--muted);font-size:14px}
@@ -297,7 +297,7 @@ function renderPen(){
     </form>`;
   }else if(canWrite&&penPanel==="settle"){
     h+=`<form class="compose" id="sform">
-      <label>이번 판 벌매 <b style="color:var(--plum)">${pending}대</b>를 정산할까요? 정산하면 이번 판 누적이 0대로 돌아가요.</label>
+      <label>이번 판 벌매 <b style="color:var(--plum-ink)">${pending}대</b>를 정산할까요? 정산하면 이번 판 누적이 0대로 돌아가요.</label>
       <label for="snote" style="font-size:13px;color:var(--muted)">한마디 (선택)</label>
       <input type="text" id="snote" maxlength="100" placeholder="이번 주 벌매 끝!">
       <div class="row"><button type="button" class="ghost" id="scancel">취소</button><button class="btn-plum" id="ssave" style="flex:1;border-radius:14px;padding:14px;font-family:var(--display);font-size:17px">정산 완료</button></div>
