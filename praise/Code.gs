@@ -185,7 +185,7 @@ function setSetting_(k, v, role) {
   if (who !== "any" && who !== role) throw new Error("forbidden");
   let val = clean_(v, 2000);
   if (k === "start" && !/^\d{4}-\d{2}-\d{2}$/.test(val)) throw new Error("bad");
-  if (k === "signal" && ["green", "yellow", "red"].indexOf(val) < 0) throw new Error("bad");
+  if (k === "signal" && !/^(10|[1-9])$/.test(val)) throw new Error("bad");
   putSetting_(k, val);
   putSetting_(k + "_at", new Date().toISOString());
 }

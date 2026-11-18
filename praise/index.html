@@ -73,6 +73,11 @@ textarea.field{min-height:70px;resize:vertical}
 .sig button i{width:30px;height:30px;border-radius:50%;background:var(--c);opacity:.35}
 .sig button[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--surface))}
 .sig button[aria-pressed="true"] i{opacity:1;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 25%,transparent)}
+.spec{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;padding:4px 2px}
+.spec button{aspect-ratio:1;width:100%;border:0;border-radius:50%;padding:0;background:var(--c);opacity:.4;transition:transform .15s,opacity .15s;cursor:pointer}
+.spec button[aria-pressed="true"]{opacity:1;transform:scale(1.18);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--c)}
+.specbar{position:relative;flex:1;height:8px;border-radius:99px;background:linear-gradient(90deg,hsl(0 70% 60%),hsl(62 70% 60%),hsl(124 70% 60%),hsl(187 70% 60%),hsl(249 70% 60%),hsl(280 70% 60%));opacity:.9;min-width:0}
+.specbar b{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--c);transform:translate(-50%,-50%);box-shadow:0 0 0 3px var(--surface)}
 .sigview{display:flex;align-items:center;gap:14px;padding:5px}
 .sigview i{width:28px;height:28px;border-radius:50%;background:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent);flex:none}
 .sigview b{font-family:var(--display);font-weight:400;font-size:18px}
@@ -245,7 +250,9 @@ span.act small{font-size:11px;margin-left:2px}
 const API_URL="https://script.google.com/macros/s/AKfycbzjj1_T2-3i9IEL6FcKp2LOqsu1msAuL6nBPiHxrvYIvvUWgOXWJ1KEuHKyBJZE2qe3IQ/exec";
 const PER=30, XS=[375,617,858,1099,1340], YS=[986,1209,1434,1656,1880,2104], JW=1696, JH=2528;
 const NAME={pet:"연이",partner:"주인님"},RO={pet:"연이로",partner:"주인님으로"};
-const SIGNALS={green:["좋아요","좋아요","var(--green)"],yellow:["살살","살살 부탁해요","var(--yellow)"],red:["쉴래요","오늘은 쉬고 싶어요","var(--red)"]};
+// 컨디션 1–10: 빨강(1, 가장 지침) → 보라(10, 최고) 무지개 스펙트럼
+const SPEC=n=>`hsl(${Math.round((n-1)*280/9)} 70% 60%)`;
+const sigVal=v=>({red:1,yellow:5,green:9})[v]||(/^(10|[1-9])$/.test(v||"")?+v:0);
 const TYPE={stamp:"칭찬 도장",order:"지시",answer:"오늘의 질문",note:"한 줄",practice:"한 줄",moment:"한 줄"};
 const STAMP_PRESETS=["말 잘 들었어","약속 잘 지켰어","밥 잘 챙겨 먹었어","일찍 잤어","솔직하게 말해줘서 고마워","오늘 하루 잘 버텼어"];
 const QUESTIONS=["오늘 가장 칭찬받고 싶은 일은?","최근에 들은 말 중 가장 힘이 된 말은?","요즘 우리 약속 중 지키기 제일 쉬운 건? 어려운 건?","오늘 컨디션을 날씨로 표현하면?","다음에 같이 해보고 싶은 것 하나","어떤 칭찬을 들을 때 가장 좋아?","상대가 나를 챙겨준다고 느끼는 순간은?","이번 주에 고마웠던 순간 하나","요즘 새로 생긴 습관이 있어?","지금 가장 먹고 싶은 건?","우리 관계에 새로 넣고 싶은 약속이 있다면?","처음 만났을 때 첫인상은?","혼날 때(?) 가장 효과 있는 방법은?","오늘 잘한 일 세 가지","상대의 어떤 모습이 가장 멋있어?","힘들 때 상대가 해줬으면 하는 것","이번 달에 꼭 같이 하고 싶은 것","나만 아는 상대의 귀여운 점","최근에 스스로 대견했던 일","상대에게 받고 싶은 작은 보상은?","하루 중 상대가 가장 생각나는 시간은?","요즘 신경 쓰이는 일이 있어?","우리만의 별명이나 애칭 중 제일 좋은 건?","다시 가고 싶은 장소","오늘 하루를 한 단어로","상대에게 배우고 싶은 점","요즘 가장 듣고 있는 노래","주말에 하고 싶은 것","내가 더 노력하고 싶은 부분","오늘 상대에게 하고 싶은 한마디"];
@@ -318,14 +325,14 @@ const feedTypes=["stamp","order","answer","note","practice","moment"];
 
 /* ---------- 오늘 ---------- */
 function vToday(){
-  const t=today(), s=data.settings, sig=SIGNALS[s.signal];
+  const t=today(), s=data.settings, sv=sigVal(s.signal);
   let h="";
   // signal
   if(role==="pet"){
     h+=`<section class="card"><div class="hd"><h2>오늘 내 컨디션</h2>${s.signal_at?`<span class="small muted">${ago(s.signal_at)}</span>`:""}</div>
-      <div class="sig" role="group" aria-label="컨디션 신호등">${Object.entries(SIGNALS).map(([k,[n,d,c]])=>`<button data-sig="${k}" style="--c:${c}" aria-pressed="${s.signal===k}" aria-label="${d}"><i></i></button>`).join("")}</div></section>`;
+      <div class="spec" role="group" aria-label="컨디션 1부터 10까지">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-sig="${n}" style="--c:${SPEC(n)}" aria-pressed="${sv===n}" aria-label="${n}"></button>`).join("")}</div></section>`;
   }else{
-    h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}" role="img" aria-label="${sig[1]}"><i></i><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
+    h+=`<section class="card${sv&&sv<=2?" alert":""}"><span class="lbl">연이의 컨디션</span>${sv?`<div class="sigview" style="--c:${SPEC(sv)}" role="img" aria-label="10 중 ${sv}"><i></i><div class="specbar"><b style="left:${(sv-1)/9*100}%;--c:${SPEC(sv)}"></b></div><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 남기지 않았어요.</p>`}</section>`;
   }
   const hSig=h;h="";
   // weekly order
@@ -497,7 +504,7 @@ document.addEventListener("click",async e=>{
   try{
   if(b.id==="fab"){openSheet();return;}
   if(d.sheet){openSheet(d.sheet);return;}
-  if(d.sig){if(data.settings.signal===d.sig)return;await write({action:"setSetting",k:"signal",v:d.sig},"신호를 남겼어요");notify("partner",d.sig==="red"?"연이가 빨간불을 켰어요":"연이의 컨디션이 바뀌었어요");return;}
+  if(d.sig){if(data.settings.signal===d.sig)return;await write({action:"setSetting",k:"signal",v:d.sig},"컨디션을 남겼어요");return;}
   if(b.id==="orderOpen"){ui.orderForm=true;render();const x=document.querySelector("#orderForm textarea");if(x)x.focus();return;}
   if(b.id==="orderCancel"){ui.orderForm=false;ui.orderEdit=false;render();return;}
   if(b.id==="orderEditOpen"){ui.orderEdit=true;render();const x=document.querySelector("#orderForm textarea");if(x)x.focus();return;}
