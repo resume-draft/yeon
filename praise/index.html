@@ -171,10 +171,17 @@ textarea.field{min-height:70px;resize:vertical}
 .burst{position:fixed;left:50%;top:45%;width:110px;height:110px;margin:-55px 0 0 -55px;z-index:40;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat;animation:burst .8s ease-out forwards;pointer-events:none}
 @keyframes burst{0%{transform:scale(.3);opacity:0}40%{transform:scale(1.1);opacity:.95}100%{transform:scale(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.burst{animation-duration:.01s}}
+[hidden]{display:none!important}
 .gate{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
 .gate .logo{width:84px;height:84px;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat}
 .gate h1{font-family:var(--display);font-weight:400;font-size:34px;margin:0}
-.gate form{display:flex;flex-direction:column;gap:10px;width:min(300px,100%)}
+.gate form,.gate .who{display:flex;flex-direction:column;gap:10px;width:min(300px,100%)}
+.gate .who button{display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:14px 16px;font:inherit;cursor:pointer}
+.gate .who button b{font-family:var(--display);font-weight:400;font-size:20px;display:block}
+.gate .who button span{font-size:13px;color:var(--muted)}
+.gate .who i{width:34px;height:34px;flex:none;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat}
+.gate .who .p i{background:var(--ink)}
+.pill.me{border:0;font:inherit;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);z-index:50}
 </style>
 </head>
@@ -209,7 +216,8 @@ const QUESTIONS=["오늘 가장 칭찬받고 싶은 일은?","최근에 들은 �
 
 let key="",role="",data={entries:[],reactions:[],goals:[],settings:{}};
 let view="today",logMode="list",calMonth="",calDay="",sheet=null,ui={},jarPeek=null;
-try{key=localStorage.getItem("paw-key")||"";role=localStorage.getItem("paw-role")||"";}catch(e){}
+let gateWho="";
+try{key=localStorage.getItem("pw2-key")||"";role=localStorage.getItem("pw2-role")||"";localStorage.removeItem("paw-key");localStorage.removeItem("paw-role");}catch(e){}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -233,7 +241,7 @@ function apply(d){
   if(!d||!Array.isArray(d.entries))return;
   const by=(a,b)=>String(a.at).localeCompare(String(b.at));
   data={entries:d.entries.slice().sort(by),reactions:(d.reactions||[]).slice().sort(by),goals:d.goals||[],settings:d.settings||{}};
-  if(d.role&&d.role!==role){role=d.role;try{localStorage.setItem("paw-role",role);}catch(e){}}
+  if(d.role&&d.role!==role){role=d.role;try{localStorage.setItem("pw2-role",role);}catch(e){}}
 }
 function errMsg(e){const c=e&&e.code;if(c==="pin")return"비밀번호가 맞지 않아요.";if(c==="forbidden")return"이 기능은 상대만 쓸 수 있어요.";if(c==="empty")return"내용을 적어 주세요.";return"저장하지 못했어요. 연결을 확인해 주세요.";}
 async function write(body,okMsg){try{const d=await api(body);apply(d);render();if(okMsg)toast(okMsg);return d;}catch(e){toast(errMsg(e));throw e;}}
@@ -377,10 +385,14 @@ function renderSheet(){
 
 /* ---------- render ---------- */
 function render(){
-  if(!key||!role){$("nav").hidden=true;$("fab").hidden=true;$("app").innerHTML=`<div class="gate"><div class="logo"></div><h1>Pawprints</h1><p class="muted">둘만의 기록장이에요.<br>비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="비밀번호" required><button class="btn" id="gateBtn">들어가기</button></form></div>`;return;}
+  if(!key||!role){$("nav").hidden=true;$("fab").hidden=true;
+    $("app").innerHTML=`<div class="gate"><div class="logo"></div><h1>Pawprints</h1>`+(!gateWho
+      ?`<p class="muted">둘만의 기록장이에요.<br>누구로 들어갈까요?</p><div class="who"><button data-who="pet"><i></i><div><b>연이</b><span>기록하고 도장 받는 쪽</span></div></button><button data-who="partner" class="p"><i></i><div><b>파트너</b><span>도장 찍고 지시하는 쪽</span></div></button></div>`
+      :`<p class="muted"><b>${NAME[gateWho]}</b> 비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="${NAME[gateWho]} 비밀번호" required><button class="btn" id="gateBtn">${NAME[gateWho]}(으)로 들어가기</button><button type="button" class="link" data-who="">← 다시 고르기</button></form>`)+`</div>`;
+    if(gateWho){const i=$("gateIn");if(i)i.focus();}return;}
   $("nav").hidden=false;$("fab").hidden=false;$("fabTxt").textContent=role==="partner"?"도장 · 한 줄":"한 줄 남기기";
   const n=data.settings.start?dayDiff(data.settings.start,today())+1:null;
-  const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<span class="pill">${NAME[role]}</span></div></header>`;
+  const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${NAME[role]}(으)로 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
   const keep=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("form")?null:null;
   $("app").innerHTML=top+(view==="log"?vLog():view==="us"?vUs():vToday());
   document.querySelectorAll(".nav a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===view?"page":"false"));
@@ -394,7 +406,9 @@ document.addEventListener("submit",async e=>{
   const val=sel=>{const x=f.querySelector(sel||"input,textarea");return x?x.value.trim():"";};
   try{
   if(f.id==="gateForm"){const v=$("gateIn").value.trim();if(!v)return;$("gateBtn").disabled=true;
-    try{key=v;const d=await api({action:"check"});role=d.role;try{localStorage.setItem("paw-key",key);localStorage.setItem("paw-role",role);}catch(x){}render();refresh();}catch(x){key="";$("gateBtn").disabled=false;toast(errMsg(x));}return;}
+    try{key=v;const d=await api({action:"check"});
+      if(d.role!==gateWho){key="";$("gateBtn").disabled=false;$("gateIn").value="";toast(`이 비밀번호는 ${NAME[d.role]} 비밀번호예요.`);return;}
+      role=d.role;gateWho="";try{localStorage.setItem("pw2-key",key);localStorage.setItem("pw2-role",role);}catch(x){}location.hash="today";render();refresh();}catch(x){key="";$("gateBtn").disabled=false;toast(errMsg(x));}return;}
   if(f.id==="sheetForm"){const v=$("stext").value.trim();if(!v){toast("내용을 적어 주세요.");return;}$("ssave").disabled=true;const t=sheet.type;
     try{await write({action:"addEntry",entry:{type:t,title:v}});sheet=null;renderSheet();burst();toast(t==="stamp"?"칭찬 도장을 찍었어요":"남겼어요");notify(other(),t==="stamp"?"칭찬 도장이 찍혔어요":"새 기록이 있어요");}catch(x){$("ssave").disabled=false;}return;}
   if(f.dataset.doneform){const id=f.dataset.doneform;await write({action:"react",reaction:{entry_id:id,kind:"done",value:val()}},"완료했어요");delete ui["o"+id];render();burst();notify("partner","지시를 완료했어요");return;}
@@ -414,6 +428,7 @@ document.addEventListener("click",async e=>{
     if(!b)return; if(b.dataset.stype){sheet.text=$("stext").value;sheet.type=b.dataset.stype;renderSheet();return;}
     if(b.dataset.preset){$("stext").value=b.dataset.preset;return;} return; }
   if(!b)return; const d=b.dataset;
+  if(d.who!=null&&!key){gateWho=d.who;render();return;}
   try{
   if(b.id==="fab"){openSheet();return;}
   if(d.sheet){openSheet(d.sheet);return;}
@@ -442,13 +457,14 @@ document.addEventListener("click",async e=>{
   if(d.wish){const done=rx(d.wish,"done")[0];if(done)await write({action:"removeReaction",id:done.id});else await write({action:"react",reaction:{entry_id:d.wish,kind:"done",value:""}},"함께 해냈어요");return;}
   if(d.rmwish){await write({action:"removeEntry",id:d.rmwish},"뺐어요");return;}
   if(b.id==="copyTopic"){try{await navigator.clipboard.writeText($("topic").textContent);toast("복사했어요");}catch(x){toast("길게 눌러 복사해 주세요");}return;}
-  if(b.id==="logout"){key="";role="";try{localStorage.removeItem("paw-key");localStorage.removeItem("paw-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
+  if(b.id==="logout"||b.id==="switchMe"){if(b.id==="switchMe"&&!b.dataset.armed){b.dataset.armed=1;b.textContent="나갈까요?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=NAME[role]+" ⇄";}},2500);return;}
+    key="";role="";gateWho="";try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
   }catch(x){}
 });
 async function refresh(){
   if(!key)return;
   try{apply(await api({action:"read"}));const busy=sheet||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();}
-  catch(e){if(e&&e.code==="pin"){key="";role="";try{localStorage.removeItem("paw-key");}catch(x){}render();toast("비밀번호가 바뀌었어요. 다시 들어와 주세요.");}}
+  catch(e){if(e&&e.code==="pin"){key="";role="";try{localStorage.removeItem("pw2-key");}catch(x){}render();toast("비밀번호가 바뀌었어요. 다시 들어와 주세요.");}}
 }
 route(); if(key)refresh();
 setInterval(()=>{if(document.visibilityState==="visible")refresh();},60000);
