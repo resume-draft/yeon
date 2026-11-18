@@ -322,7 +322,7 @@ function vToday(){
   const qi=qIndex(t), ans=of("answer").filter(a=>a.goal_id===t), mine=ans.find(a=>a.author===role), theirs=ans.find(a=>a.author!==role);
   h+=`<section class="card"><span class="lbl">오늘의 질문</span><p class="q">${esc(QUESTIONS[qi])}</p>
     ${theirs?`<div class="ans"><span class="who">${NAME[theirs.author]}</span><p>${esc(theirs.title)}</p></div>`:""}
-    ${mine?`<div class="ans"><span class="who">나</span><p>${esc(mine.title)}</p></div>`:`<form class="inl" id="ansForm"><input class="field" maxlength="300" placeholder="내 답" aria-label="내 답"><button class="ghost">답하기</button></form>`}</section>`;
+    ${mine?((ui[mine.id]||{}).edit?editForm(mine):`<div class="ans"><span class="who">나</span><p>${esc(mine.title)}</p><div class="row" style="justify-content:flex-end;gap:12px">${(ui[mine.id]||{}).del?`<span class="small">지울까요? <button class="danger" data-delyes="${mine.id}">지우기</button> <button class="link" data-delno="${mine.id}">아니요</button></span>`:`<button class="link" data-edit="${mine.id}">고치기</button><button class="link" style="color:var(--muted)" data-del="${mine.id}">지우기</button>`}</div></div>`):`<form class="inl" id="ansForm"><input class="field" maxlength="300" placeholder="내 답" aria-label="내 답"><button class="ghost">답하기</button></form>`}</section>`;
   const hQ=h;h="";
   // jar
   const ym=t.slice(0,7), st=monthStamps(ym), [yy,mm,dd]=t.split("-");
@@ -352,13 +352,17 @@ function entryCard(e){
   const hr=e.author==="pet"?"partner":"pet", hOn=hearts.some(r=>r.author===hr);
   let acts=(role===hr?`<button class="act h-${hr}" data-heart="${e.id}" aria-pressed="${hOn}" aria-label="하트">♥</button>`:hOn?`<span class="act h-${hr}" aria-pressed="true" aria-label="${NAME[hr]}의 하트">♥ <small>${NAME[hr]}</small></span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
   if(role==="partner"&&e.author==="pet"&&t!=="order"&&t!=="answer"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
-  if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:auto;color:var(--muted)" data-del="${e.id}">지우기</button>`;
+  const canEdit=e.author===role&&(t==="answer"||t==="note"||t==="practice"||t==="moment");
+  if(canEdit&&!u.del)acts+=`<button class="link" style="margin-left:auto;color:var(--muted)" data-edit="${e.id}">고치기</button>`;
+  if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:${canEdit?"4px":"auto"};color:var(--muted)" data-del="${e.id}">지우기</button>`;
+  if(u.edit)body=editForm(e);
   return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"파트너":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
     ${body}${sub}
     ${cm.length?`<div class="cmts">${cm.map(c=>`<p><b>${NAME[c.author]}</b>${esc(c.value)}</p>`).join("")}</div>`:""}
     <div class="acts">${acts}</div>
     ${u.cmt?`<form class="inl" data-cmtform="${e.id}"><input class="field" maxlength="120" placeholder="댓글" aria-label="댓글"><button class="ghost">보내기</button></form>`:""}</article>`;
 }
+function editForm(e){return`<form class="inl" data-editform="${e.id}"><input class="field" maxlength="120" value="${esc(e.title)}" aria-label="고칠 내용"><button class="ghost">저장</button><button type="button" class="link" style="color:var(--muted)" data-editno="${e.id}">취소</button></form>`;}
 function feedHtml(es){let last="",h=`<div class="feed">`;es.forEach(e=>{const d=kday(e.at);if(d!==last){h+=`<div class="dayhead">${dayLabel(d)}</div>`;last=d;}h+=entryCard(e);});return h+`</div>`;}
 function vLog(){
   const all=data.entries.filter(e=>feedTypes.includes(e.type)).slice().reverse();
@@ -445,6 +449,7 @@ document.addEventListener("submit",async e=>{
     ui.orderForm=false;ui.orderEdit=false;render();return;}
   if(f.id==="ansForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"answer",title:v,goal_id:today(),note:QUESTIONS[qIndex(today())]}},"답했어요");notify(other(),"오늘의 질문에 답했어요");return;}
   if(f.id==="rewardForm"){await write({action:"setSetting",k:"reward",v:val()},"보상을 정했어요");ui.reward=false;render();return;}
+  if(f.dataset.editform){const v=val();if(!v)return;const id=f.dataset.editform;await write({action:"updateEntry",id,entry:{title:v}},"고쳤어요");ui[id]={};render();return;}
   if(f.dataset.cmtform){const v=val();if(!v)return;const id=f.dataset.cmtform;await write({action:"react",reaction:{entry_id:id,kind:"comment",value:v}});ui[id]={};render();notify(other(),"새 댓글이 있어요");return;}
   if(f.id==="ruleForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"rule",title:v}},role==="partner"?"약속을 추가했어요":"약속을 제안했어요");notify(other(),role==="partner"?"새 약속이 생겼어요":"약속 제안이 왔어요");return;}
   if(f.id==="drawerForm"){const v=val();if(!v)return;await write({action:"setGoal",goal:{name:v}},"서랍에 넣었어요");return;}
@@ -484,6 +489,8 @@ document.addEventListener("click",async e=>{
   if(d.cmt){ui[d.cmt]={cmt:!(ui[d.cmt]||{}).cmt};render();const x=document.querySelector(`[data-cmtform="${d.cmt}"] input`);if(x)x.focus();return;}
   if(d.stamp){b.disabled=true;await write({action:"react",reaction:{entry_id:d.stamp,kind:"stamp"}},"칭찬 도장을 찍었어요");burst();notify("pet","칭찬 도장이 찍혔어요");return;}
   if(d.del){ui[d.del]={del:true};render();return;}
+  if(d.edit){ui[d.edit]={edit:true};render();const x=document.querySelector(`[data-editform="${d.edit}"] input`);if(x)x.focus();return;}
+  if(d.editno){ui[d.editno]={};render();return;}
   if(d.delno){ui[d.delno]={};render();return;}
   if(d.delyes){await write({action:"removeEntry",id:d.delyes},"지웠어요");return;}
   if(d.okrule){await write({action:"star",id:d.okrule,on:true},"약속을 승인했어요");notify("pet","제안한 약속이 승인됐어요");return;}
