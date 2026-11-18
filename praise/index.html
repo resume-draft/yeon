@@ -252,7 +252,8 @@ async function api(body){
 function apply(d){
   if(!d||!Array.isArray(d.entries))return;
   const by=(a,b)=>String(a.at).localeCompare(String(b.at));
-  data={entries:d.entries.slice().sort(by),reactions:(d.reactions||[]).slice().sort(by),goals:d.goals||[],settings:d.settings||{}};
+  const dn=v=>/^\d{4}-\d{2}-\d{2}T/.test(v||"")?kday(v):v; // 시트가 날짜를 날짜 형식으로 바꿔 저장한 경우 되돌리기
+  data={entries:d.entries.map(e=>({...e,goal_id:dn(e.goal_id)})).sort(by),reactions:(d.reactions||[]).map(r=>({...r,value:dn(r.value)})).sort(by),goals:d.goals||[],settings:d.settings||{}};
   if(d.role&&d.role!==role){role=d.role;try{localStorage.setItem("pw2-role",role);}catch(e){}}
 }
 function errMsg(e){const c=e&&e.code;if(c==="pin")return"비밀번호가 맞지 않아요.";if(c==="forbidden")return"이 기능은 상대만 쓸 수 있어요.";if(c==="empty")return"내용을 적어 주세요.";return"저장하지 못했어요. 연결을 확인해 주세요.";}
