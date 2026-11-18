@@ -228,7 +228,7 @@ const QUESTIONS=["오늘 가장 칭찬받고 싶은 일은?","최근에 들은 �
 
 let key="",role="",data={entries:[],reactions:[],goals:[],settings:{}};
 let view="today",logMode="list",calMonth="",calDay="",sheet=null,ui={},jarPeek=null;
-let gateWho="";
+let gateWho="";const busyHeart={};
 try{key=localStorage.getItem("pw2-key")||"";role=localStorage.getItem("pw2-role")||"";localStorage.removeItem("paw-key");localStorage.removeItem("paw-role");}catch(e){}
 
 const $=id=>document.getElementById(id);
@@ -337,10 +337,11 @@ function entryCard(e){
   const t=feedTypes.includes(e.type)?e.type:"note", hearts=rx(e.id,"heart"), cm=rx(e.id,"comment"), stamps=rx(e.id,"stamp"), done=rx(e.id,"done")[0];
   const myHeart=hearts.find(r=>r.author===role), u=ui[e.id]||{};
   let label=TYPE[t]||"한 줄", body=`<p class="txt">${esc(e.title)}</p>`, sub="";
-  if(t==="answer"){const d=e.goal_id;sub=`<p class="sub">Q. ${esc(QUESTIONS[qIndex(d)]||"")}</p>`;}
+  if(t==="answer"){const q=e.note||QUESTIONS[qIndex(e.goal_id)]||"";body=`<p class="sub" style="font-weight:600">Q. ${esc(q)}</p>`+body;}
   if(t==="order"){const w=orderWeek(e),c=checks(e);label="이번 주의 지시";sub=`<p class="sub">${+w.slice(5,7)}월 ${+w.slice(8)}일 주 · ${c.length} / 7일 지킴</p>${weekRow(e,false)}`;}
-  if(e.note)sub+=`<p class="sub">${esc(e.note)}</p>`;
-  let acts=`<button class="act" data-heart="${e.id}" aria-pressed="${!!myHeart}">♥${hearts.length?" "+hearts.length:""}</button><button class="act" data-cmt="${e.id}">댓글</button>`;
+  if(e.note&&t!=="answer")sub+=`<p class="sub">${esc(e.note)}</p>`;
+  const petHeart=hearts.some(r=>r.author==="pet");
+  let acts=(role==="pet"?`<button class="act" data-heart="${e.id}" aria-pressed="${petHeart}" aria-label="하트">♥</button>`:petHeart?`<span class="act" aria-pressed="true" aria-label="연이의 하트">♥</span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
   if(role==="partner"&&e.author==="pet"&&t!=="order"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
   if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:auto;color:var(--muted)" data-del="${e.id}">지우기</button>`;
   return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"파트너":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
@@ -433,7 +434,7 @@ document.addEventListener("submit",async e=>{
     if(wo&&ui.orderEdit){await write({action:"updateEntry",id:wo.id,entry:{title:v}},"고쳤어요");notify("pet","이번 주의 지시가 바뀌었어요");}
     else{await write({action:"addEntry",entry:{type:"order",title:v,goal_id:ws}},"이번 주의 지시를 정했어요");notify("pet","이번 주의 지시가 왔어요");}
     ui.orderForm=false;ui.orderEdit=false;render();return;}
-  if(f.id==="ansForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"answer",title:v,goal_id:today()}},"답했어요");notify(other(),"오늘의 질문에 답했어요");return;}
+  if(f.id==="ansForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"answer",title:v,goal_id:today(),note:QUESTIONS[qIndex(today())]}},"답했어요");notify(other(),"오늘의 질문에 답했어요");return;}
   if(f.id==="rewardForm"){await write({action:"setSetting",k:"reward",v:val()},"보상을 정했어요");ui.reward=false;render();return;}
   if(f.dataset.cmtform){const v=val();if(!v)return;const id=f.dataset.cmtform;await write({action:"react",reaction:{entry_id:id,kind:"comment",value:v}});ui[id]={};render();notify(other(),"새 댓글이 있어요");return;}
   if(f.id==="ruleForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"rule",title:v}},role==="partner"?"약속을 추가했어요":"약속을 제안했어요");notify(other(),role==="partner"?"새 약속이 생겼어요":"약속 제안이 왔어요");return;}
@@ -466,7 +467,11 @@ document.addEventListener("click",async e=>{
   if(d.mode){logMode=d.mode;render();return;}
   if(d.day){calDay=calDay===d.day?"":d.day;render();return;}
   if(b.id==="calPrev"||b.id==="calNext"){const[y,m]=calMonth.split("-").map(Number);calMonth=new Date(Date.UTC(y,m-1+(b.id==="calNext"?1:-1),1)).toISOString().slice(0,7);calDay="";render();return;}
-  if(d.heart){const mine=rx(d.heart,"heart").find(r=>r.author===role);if(mine)await write({action:"removeReaction",id:mine.id});else{await write({action:"react",reaction:{entry_id:d.heart,kind:"heart",value:"♥"}});notify(other(),"♥ 하트를 받았어요");}return;}
+  if(d.heart){if(role!=="pet"||busyHeart[d.heart])return;busyHeart[d.heart]=1;b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true");
+    try{const mine=rx(d.heart,"heart").filter(r=>r.author==="pet");
+      if(mine.length){for(const r of mine)await api({action:"removeReaction",id:r.id}).then(apply);}
+      else{apply(await api({action:"react",reaction:{entry_id:d.heart,kind:"heart",value:"♥"}}));notify("partner","♥ 하트를 받았어요");}
+    }catch(x){toast(errMsg(x));}finally{delete busyHeart[d.heart];render();}return;}
   if(d.cmt){ui[d.cmt]={cmt:!(ui[d.cmt]||{}).cmt};render();const x=document.querySelector(`[data-cmtform="${d.cmt}"] input`);if(x)x.focus();return;}
   if(d.stamp){b.disabled=true;await write({action:"react",reaction:{entry_id:d.stamp,kind:"stamp"}},"칭찬 도장을 찍었어요");burst();notify("pet","칭찬 도장이 찍혔어요");return;}
   if(d.del){ui[d.del]={del:true};render();return;}
