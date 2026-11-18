@@ -131,6 +131,10 @@ textarea.field{min-height:70px;resize:vertical}
 .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .act{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:3px 11px;font-size:13px}
 .act[aria-pressed="true"]{background:#F6DAD5;border-color:#F6DAD5;color:#9E4237}
+.act.h-pet{color:#B9A99B}.act.h-partner{color:#B9A99B}
+.act.h-pet[aria-pressed="true"]{background:#F8DCD6;border-color:#E9A69B;color:#C9503F}
+.act.h-partner[aria-pressed="true"]{background:#D3EBEF;border-color:#86C2CE;color:#2E8597}
+span.act small{font-size:11px;margin-left:2px}
 .cmts{display:flex;flex-direction:column;gap:4px;border-top:1px dashed var(--line);padding-top:6px}
 .cmts p{font-size:13.5px;overflow-wrap:anywhere}
 .cmts b{font-weight:400;color:var(--muted);font-size:12px;margin-right:4px}
@@ -345,8 +349,8 @@ function entryCard(e){
   if(t==="answer"){const q=e.note||QUESTIONS[qIndex(e.goal_id)]||"";body=`<p class="sub" style="font-weight:600">Q. ${esc(q)}</p>`+body;}
   if(t==="order"){const w=orderWeek(e),c=checks(e);label="이번 주의 지시";sub=`<p class="sub">${+w.slice(5,7)}월 ${+w.slice(8)}일 주 · ${c.length} / 7일 지킴</p>${weekRow(e,false)}`;}
   if(e.note&&t!=="answer")sub+=`<p class="sub">${esc(e.note)}</p>`;
-  const petHeart=hearts.some(r=>r.author==="pet");
-  let acts=(role==="pet"?`<button class="act" data-heart="${e.id}" aria-pressed="${petHeart}" aria-label="하트">♥</button>`:petHeart?`<span class="act" aria-pressed="true" aria-label="연이의 하트">♥</span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
+  const hr=e.author==="pet"?"partner":"pet", hOn=hearts.some(r=>r.author===hr);
+  let acts=(role===hr?`<button class="act h-${hr}" data-heart="${e.id}" aria-pressed="${hOn}" aria-label="하트">♥</button>`:hOn?`<span class="act h-${hr}" aria-pressed="true" aria-label="${NAME[hr]}의 하트">♥ <small>${NAME[hr]}</small></span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
   if(role==="partner"&&e.author==="pet"&&t!=="order"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
   if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:auto;color:var(--muted)" data-del="${e.id}">지우기</button>`;
   return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"파트너":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
@@ -472,10 +476,10 @@ document.addEventListener("click",async e=>{
   if(d.mode){logMode=d.mode;render();return;}
   if(d.day){calDay=calDay===d.day?"":d.day;render();return;}
   if(b.id==="calPrev"||b.id==="calNext"){const[y,m]=calMonth.split("-").map(Number);calMonth=new Date(Date.UTC(y,m-1+(b.id==="calNext"?1:-1),1)).toISOString().slice(0,7);calDay="";render();return;}
-  if(d.heart){if(role!=="pet"||busyHeart[d.heart])return;busyHeart[d.heart]=1;b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true");
-    try{const mine=rx(d.heart,"heart").filter(r=>r.author==="pet");
+  if(d.heart){const he=data.entries.find(x=>x.id===d.heart);if(!he||he.author===role||busyHeart[d.heart])return;busyHeart[d.heart]=1;b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true");
+    try{const mine=rx(d.heart,"heart").filter(r=>r.author===role);
       if(mine.length){for(const r of mine)await api({action:"removeReaction",id:r.id}).then(apply);}
-      else{apply(await api({action:"react",reaction:{entry_id:d.heart,kind:"heart",value:"♥"}}));notify("partner","♥ 하트를 받았어요");}
+      else{apply(await api({action:"react",reaction:{entry_id:d.heart,kind:"heart",value:"♥"}}));notify(other(),"♥ 하트를 받았어요");}
     }catch(x){toast(errMsg(x));}finally{delete busyHeart[d.heart];render();}return;}
   if(d.cmt){ui[d.cmt]={cmt:!(ui[d.cmt]||{}).cmt};render();const x=document.querySelector(`[data-cmtform="${d.cmt}"] input`);if(x)x.focus();return;}
   if(d.stamp){b.disabled=true;await write({action:"react",reaction:{entry_id:d.stamp,kind:"stamp"}},"칭찬 도장을 찍었어요");burst();notify("pet","칭찬 도장이 찍혔어요");return;}
