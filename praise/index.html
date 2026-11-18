@@ -244,7 +244,7 @@ span.act small{font-size:11px;margin-left:2px}
 
 const API_URL="https://script.google.com/macros/s/AKfycbzjj1_T2-3i9IEL6FcKp2LOqsu1msAuL6nBPiHxrvYIvvUWgOXWJ1KEuHKyBJZE2qe3IQ/exec";
 const PER=30, XS=[375,617,858,1099,1340], YS=[986,1209,1434,1656,1880,2104], JW=1696, JH=2528;
-const NAME={pet:"연이",partner:"파트너"};
+const NAME={pet:"연이",partner:"주인님"},RO={pet:"연이로",partner:"주인님으로"};
 const SIGNALS={green:["좋아요","좋아요","var(--green)"],yellow:["살살","살살 부탁해요","var(--yellow)"],red:["쉴래요","오늘은 쉬고 싶어요","var(--red)"]};
 const TYPE={stamp:"칭찬 도장",order:"지시",answer:"오늘의 질문",note:"한 줄",practice:"한 줄",moment:"한 줄"};
 const STAMP_PRESETS=["말 잘 들었어","약속 잘 지켰어","밥 잘 챙겨 먹었어","일찍 잤어","솔직하게 말해줘서 고마워","오늘 하루 잘 버텼어"];
@@ -383,7 +383,7 @@ function entryCard(e){
   if(canEdit&&!u.del)acts+=`<button class="link" style="margin-left:auto;color:var(--muted)" data-edit="${e.id}">고치기</button>`;
   if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:${canEdit?"4px":"auto"};color:var(--muted)" data-del="${e.id}">지우기</button>`;
   if(u.edit)body=editForm(e);
-  return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"파트너":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
+  return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"주인님":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
     ${body}${sub}
     ${cm.length?`<div class="cmts">${cm.map(c=>`<p><b>${NAME[c.author]}</b>${esc(c.value)}</p>`).join("")}</div>`:""}
     <div class="acts">${acts}</div>
@@ -423,7 +423,7 @@ function vUs(){
   const topic=data.settings[role==="pet"?"ntfy_pet":"ntfy_partner"];
   h+=`<section class="card"><button class="fold" id="setToggle" aria-expanded="${!!ui.settings}"><h3>설정</h3><span class="small muted">${NAME[role]} · ${ui.settings?"접기":"열기"}</span></button>`+(!ui.settings?`</section>`:`<span class="lbl">함께한 첫날</span><form class="inl" id="startForm"><input type="date" class="field" value="${esc(data.settings.start||"")}" max="${today()}" aria-label="함께한 첫날"><button class="ghost">저장</button></form>
     ${topic?`<span class="lbl">알림 받기 (ntfy 앱에서 구독)</span><div class="row"><span class="code" id="topic">${esc(topic)}</span><button class="ghost" id="copyTopic">복사</button></div>`:""}
-    <div class="row" style="justify-content:space-between"><span class="small muted">${NAME[role]}(으)로 들어와 있어요</span><button class="link" id="logout">이 기기에서 나가기</button></div></section>`);
+    <div class="row" style="justify-content:space-between"><span class="small muted">${RO[role]} 들어와 있어요</span><button class="link" id="logout">이 기기에서 나가기</button></div></section>`);
   return h;
 }
 
@@ -445,12 +445,12 @@ function renderSheet(){
 function render(){
   if(!key||!role){$("nav").hidden=true;$("fab").hidden=true;
     $("app").innerHTML=`<div class="gate"><div class="logo"></div><h1>Pawprints</h1>`+(!gateWho
-      ?`<p class="muted">둘만의 기록장이에요.<br>누구로 들어갈까요?</p><div class="who"><button data-who="pet"><i></i><div><b>연이</b><span>기록하고 도장 받는 쪽</span></div></button><button data-who="partner" class="p"><i></i><div><b>파트너</b><span>도장 찍고 지시하는 쪽</span></div></button></div>`
-      :`<p class="muted"><b>${NAME[gateWho]}</b> 비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="${NAME[gateWho]} 비밀번호" required><button class="btn" id="gateBtn">${NAME[gateWho]}(으)로 들어가기</button><button type="button" class="link" data-who="">← 다시 고르기</button></form>`)+`</div>`;
+      ?`<p class="muted">둘만의 기록장이에요.<br>누구로 들어갈까요?</p><div class="who"><button data-who="pet"><i></i><div><b>연이</b><span>기록하고 도장 받는 쪽</span></div></button><button data-who="partner" class="p"><i></i><div><b>주인님</b><span>도장 찍고 지시하는 쪽</span></div></button></div>`
+      :`<p class="muted"><b>${NAME[gateWho]}</b> 비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="${NAME[gateWho]} 비밀번호" required><button class="btn" id="gateBtn">${RO[gateWho]} 들어가기</button><button type="button" class="link" data-who="">← 다시 고르기</button></form>`)+`</div>`;
     if(gateWho){const i=$("gateIn");if(i)i.focus();}return;}
   $("nav").hidden=false;$("fab").hidden=false;$("fabTxt").textContent=role==="partner"?"도장 · 한 줄":"한 줄 남기기";
   const n=data.settings.start?dayDiff(data.settings.start,today())+1:null;
-  const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${NAME[role]}(으)로 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
+  const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${RO[role]} 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
   const keep=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("form")?null:null;
   $("app").innerHTML=top+(view==="log"?vLog():view==="us"?vUs():vToday());
   document.querySelectorAll(".nav a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===view?"page":"false"));
