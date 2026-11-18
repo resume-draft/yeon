@@ -198,6 +198,13 @@ span.act small{font-size:11px;margin-left:2px}
 .gate .who i{width:34px;height:34px;flex:none;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat}
 .gate .who .p i{background:var(--ink)}
 .pill.me{border:0;font:inherit;cursor:pointer}
+.splash{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.splash h1{font-family:var(--display);font-weight:400;font-size:30px;margin:6px 0 0}
+.splash .steps{display:flex;gap:10px;align-items:flex-end;height:56px}
+.splash .steps i{width:30px;height:30px;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat;opacity:.15;animation:step 1.2s ease-in-out infinite}
+.splash .steps i:nth-child(2){animation-delay:.2s;margin-bottom:14px}.splash .steps i:nth-child(3){animation-delay:.4s}
+@keyframes step{0%,100%{opacity:.15;transform:scale(.85)}35%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.splash .steps i{animation:none;opacity:.6}}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);z-index:50}
 </style>
 </head>
@@ -232,7 +239,9 @@ const QUESTIONS=["오늘 가장 칭찬받고 싶은 일은?","최근에 들은 �
 
 let key="",role="",data={entries:[],reactions:[],goals:[],settings:{}};
 let view="today",logMode="list",calMonth="",calDay="",sheet=null,ui={},jarPeek=null;
-let gateWho="";const busyHeart={};
+let gateWho="";const busyHeart={};let ready=false;
+const boardReady=new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src="board.webp?v=3";});
+function markReady(){if(ready)return;ready=true;clearTimeout(markReady._t);render();}
 try{key=localStorage.getItem("pw2-key")||"";role=localStorage.getItem("pw2-role")||"";localStorage.removeItem("paw-key");localStorage.removeItem("paw-role");}catch(e){}
 
 const $=id=>document.getElementById(id);
@@ -421,6 +430,8 @@ function render(){
       ?`<p class="muted">둘만의 기록장이에요.<br>누구로 들어갈까요?</p><div class="who"><button data-who="pet"><i></i><div><b>연이</b><span>기록하고 도장 받는 쪽</span></div></button><button data-who="partner" class="p"><i></i><div><b>파트너</b><span>도장 찍고 지시하는 쪽</span></div></button></div>`
       :`<p class="muted"><b>${NAME[gateWho]}</b> 비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="${NAME[gateWho]} 비밀번호" required><button class="btn" id="gateBtn">${NAME[gateWho]}(으)로 들어가기</button><button type="button" class="link" data-who="">← 다시 고르기</button></form>`)+`</div>`;
     if(gateWho){const i=$("gateIn");if(i)i.focus();}return;}
+  if(!ready){$("nav").hidden=true;$("fab").hidden=true;$("app").innerHTML=`<div class="splash" role="status" aria-label="불러오는 중"><div class="steps"><i></i><i></i><i></i></div><h1>Pawprints</h1><p class="muted small">도장 꺼내는 중…</p></div>`;
+    clearTimeout(markReady._t);markReady._t=setTimeout(markReady,8000);return;}
   $("nav").hidden=false;$("fab").hidden=false;$("fabTxt").textContent=role==="partner"?"도장 · 한 줄":"한 줄 남기기";
   const n=data.settings.start?dayDiff(data.settings.start,today())+1:null;
   const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${NAME[role]}(으)로 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
@@ -500,13 +511,13 @@ document.addEventListener("click",async e=>{
   if(b.id==="setToggle"){ui.settings=!ui.settings;render();return;}
   if(b.id==="copyTopic"){try{await navigator.clipboard.writeText($("topic").textContent);toast("복사했어요");}catch(x){toast("길게 눌러 복사해 주세요");}return;}
   if(b.id==="logout"||b.id==="switchMe"){if(b.id==="switchMe"&&!b.dataset.armed){b.dataset.armed=1;b.textContent="나갈까요?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=NAME[role]+" ⇄";}},2500);return;}
-    key="";role="";gateWho="";try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
+    key="";role="";gateWho="";ready=false;try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
   }catch(x){}
 });
 async function refresh(){
   if(!key)return;
-  try{apply(await api({action:"read"}));const busy=sheet||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();}
-  catch(e){if(e&&e.code==="pin"){key="";role="";try{localStorage.removeItem("pw2-key");}catch(x){}render();toast("비밀번호가 바뀌었어요. 다시 들어와 주세요.");}}
+  try{apply(await api({action:"read"}));if(!ready){await Promise.race([boardReady,new Promise(r=>setTimeout(r,2500))]);markReady();return;}const busy=sheet||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();}
+  catch(e){if(!ready&&!(e&&e.code==="pin")){markReady();toast("연결을 확인해 주세요.");}if(e&&e.code==="pin"){key="";role="";try{localStorage.removeItem("pw2-key");}catch(x){}render();toast("비밀번호가 바뀌었어요. 다시 들어와 주세요.");}}
 }
 route(); if(key)refresh();
 setInterval(()=>{if(document.visibilityState==="visible")refresh();},60000);
