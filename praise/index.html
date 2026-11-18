@@ -295,6 +295,7 @@ function vToday(){
   }else{
     h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}" role="img" aria-label="${sig[1]}"><i></i><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
   }
+  const hSig=h;h="";
   // weekly order
   const ws=weekStart(t), wo=weekOrder(ws);
   if(wo){const n=checks(wo).length;
@@ -311,11 +312,13 @@ function vToday(){
         <div class="row"><button type="button" class="ghost" id="orderCancel">취소</button><button class="btn" style="flex:1">정하기</button></div></form></section>`
       :`<section class="card"><div class="hd"><span class="small muted">이번 주 지시는 없어요. 정하고 싶을 때만 정해요.</span></div><div class="row"><button class="btn soft" id="orderOpen">정하기</button>${prev?`<button class="ghost" id="orderCarry">지난주 지시 이어가기</button>`:""}</div></section>`;
   }
+  const hOrd=h;h="";
   // question
   const qi=qIndex(t), ans=of("answer").filter(a=>a.goal_id===t), mine=ans.find(a=>a.author===role), theirs=ans.find(a=>a.author!==role);
   h+=`<section class="card"><span class="lbl">오늘의 질문</span><p class="q">${esc(QUESTIONS[qi])}</p>
     ${theirs?`<div class="ans"><span class="who">${NAME[theirs.author]}</span><p>${esc(theirs.title)}</p></div>`:""}
     ${mine?`<div class="ans"><span class="who">나</span><p>${esc(mine.title)}</p></div>`:`<form class="inl" id="ansForm"><input class="field" maxlength="300" placeholder="내 답" aria-label="내 답"><button class="ghost">답하기</button></form>`}</section>`;
+  const hQ=h;h="";
   // jar
   const ym=t.slice(0,7), st=monthStamps(ym), [yy,mm,dd]=t.split("-");
   let slots=""; for(let i=0;i<Math.min(PER,st.length);i++){const x=XS[i%5]/JW*100,y=YS[Math.floor(i/5)]/JH*100,rot=((i*37)%21)-10;slots+=`<button class="slot on" style="left:${x}%;top:${y}%" data-jar="${i}" aria-label="${i+1}번 도장"><span class="seal" style="transform:rotate(${rot}deg)"></span></button>`;}
@@ -326,10 +329,11 @@ function vToday(){
     ${ui.reward?`<form class="inl" id="rewardForm"><input class="field" maxlength="100" value="${esc(rw)}" placeholder="병이 다 차면 줄 보상" aria-label="보상"><button class="ghost">저장</button></form>`
       :(rw||role==="partner")?`<div class="reward"><p><span class="small">병이 다 차면</span><br>${rw?esc(rw):'<span class="muted">보상을 정해 주세요</span>'}</p>${role==="partner"?`<button class="link" id="rewardEdit">${rw?"바꾸기":"정하기"}</button>`:""}</div>`:""}
     ${role==="partner"?`<button class="btn" data-sheet="stamp">칭찬 도장 찍기</button>`:""}</section>`;
+  const hJar=h;h="";
   // memory
   const ly=(+yy-1)+t.slice(4), mem=data.entries.find(e=>kday(e.at)===ly&&feedTypes.includes(e.type));
   if(mem)h+=`<section class="peek" style="background:var(--blush)"><p><span class="small muted">1년 전 오늘</span><br>${esc(mem.title)}</p></section>`;
-  return h;
+  return hJar+hOrd+hSig+hQ+h;
 }
 
 /* ---------- 기록 ---------- */
