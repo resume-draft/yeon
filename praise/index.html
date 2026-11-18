@@ -99,7 +99,11 @@ textarea.field{min-height:70px;resize:vertical}
 .jarcap b{font-family:var(--display);font-weight:400;font-size:18px}
 .reward{background:var(--peach);border-radius:14px;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center}
 .reward p{overflow-wrap:anywhere}
+.fold{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.fold h3{margin:0}
 .peek{background:var(--soft);border-radius:14px;padding:10px 12px;font-size:14px;display:flex;justify-content:space-between;gap:10px}
+.peek p{margin:0;min-width:0;flex:1;word-break:keep-all;overflow-wrap:anywhere}
+.peek #peekx{flex:none;align-self:flex-start;white-space:nowrap;font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:99px;color:var(--muted);text-decoration:none;line-height:1.6}
 
 /* feed */
 .seg{display:flex;gap:4px;background:var(--soft);border-radius:14px;padding:4px;align-self:flex-start}
@@ -363,9 +367,9 @@ function vUs(){
   if(months.length)h+=`<section class="card"><h3>지난 병들</h3><div class="shelf">${months.map(mo=>`<div class="minijar"><b>${monthStamps(mo).length}</b><span>${mo.slice(2,4)}년 ${+mo.slice(5)}월</span></div>`).join("")}</div></section>`;
   // settings
   const topic=data.settings[role==="pet"?"ntfy_pet":"ntfy_partner"];
-  h+=`<section class="card"><h3>설정</h3><span class="lbl">함께한 첫날</span><form class="inl" id="startForm"><input type="date" class="field" value="${esc(data.settings.start||"")}" max="${today()}" aria-label="함께한 첫날"><button class="ghost">저장</button></form>
+  h+=`<section class="card"><button class="fold" id="setToggle" aria-expanded="${!!ui.settings}"><h3>설정</h3><span class="small muted">${NAME[role]} · ${ui.settings?"접기":"열기"}</span></button>`+(!ui.settings?`</section>`:`<span class="lbl">함께한 첫날</span><form class="inl" id="startForm"><input type="date" class="field" value="${esc(data.settings.start||"")}" max="${today()}" aria-label="함께한 첫날"><button class="ghost">저장</button></form>
     ${topic?`<span class="lbl">알림 받기 (ntfy 앱에서 구독)</span><div class="row"><span class="code" id="topic">${esc(topic)}</span><button class="ghost" id="copyTopic">복사</button></div>`:""}
-    <div class="row" style="justify-content:space-between"><span class="small muted">${NAME[role]}(으)로 들어와 있어요</span><button class="link" id="logout">이 기기에서 나가기</button></div></section>`;
+    <div class="row" style="justify-content:space-between"><span class="small muted">${NAME[role]}(으)로 들어와 있어요</span><button class="link" id="logout">이 기기에서 나가기</button></div></section>`);
   return h;
 }
 
@@ -456,6 +460,7 @@ document.addEventListener("click",async e=>{
   if(d.rmg){await write({action:"setGoal",goal:{id:d.rmg,active:false}},"서랍에서 뺐어요");return;}
   if(d.wish){const done=rx(d.wish,"done")[0];if(done)await write({action:"removeReaction",id:done.id});else await write({action:"react",reaction:{entry_id:d.wish,kind:"done",value:""}},"함께 해냈어요");return;}
   if(d.rmwish){await write({action:"removeEntry",id:d.rmwish},"뺐어요");return;}
+  if(b.id==="setToggle"){ui.settings=!ui.settings;render();return;}
   if(b.id==="copyTopic"){try{await navigator.clipboard.writeText($("topic").textContent);toast("복사했어요");}catch(x){toast("길게 눌러 복사해 주세요");}return;}
   if(b.id==="logout"||b.id==="switchMe"){if(b.id==="switchMe"&&!b.dataset.armed){b.dataset.armed=1;b.textContent="나갈까요?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=NAME[role]+" ⇄";}},2500);return;}
     key="";role="";gateWho="";try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
