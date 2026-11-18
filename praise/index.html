@@ -292,7 +292,7 @@ function errMsg(e){const c=e&&e.code;if(c==="pin")return"비밀번호가 맞지 
 async function write(body,okMsg){try{const d=await api(body);apply(d);render();if(okMsg)toast(okMsg);return d;}catch(e){toast(errMsg(e));throw e;}}
 function notify(to,message){
   const topic=data.settings[to==="pet"?"ntfy_pet":"ntfy_partner"]; if(!topic)return;
-  try{fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic,title:"Pawprints",message,tags:["paw_prints"],click:location.href.split("#")[0].split("?")[0]})}).catch(()=>{});}catch(e){}
+  try{fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic,title:"Pawprints",message,tags:["paw_prints"],click:to==="partner"?"pawprints://open":location.href.split("#")[0].split("?")[0]})}).catch(()=>{});}catch(e){}
 }
 
 /* ---------- derived ---------- */
