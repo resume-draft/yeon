@@ -372,7 +372,7 @@ function vToday(){
   // memory
   const ly=(+yy-1)+t.slice(4), mem=data.entries.find(e=>kday(e.at)===ly&&feedTypes.includes(e.type));
   if(mem)h+=`<section class="peek" style="background:var(--blush)"><p><span class="small muted">1년 전 오늘</span><br>${esc(mem.title)}</p></section>`;
-  return hJar+hOrd+hSig+hQ+h;
+  return hJar+hOrd+hQ+h;
 }
 
 /* ---------- 기록 ---------- */
