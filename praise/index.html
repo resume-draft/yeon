@@ -375,7 +375,7 @@ function vUs(){
   // wishes
   const ws=of("wish").slice().reverse();
   h+=`<section class="card"><h3>함께 하고 싶은 것</h3>${ws.map(w=>{const d=rx(w.id,"done")[0];return`<div class="li"><button class="check" data-wish="${w.id}" aria-pressed="${!!d}" aria-label="${d?"완료 취소":"완료"}">${d?"✓":""}</button><span class="t${d?" done":""}">${esc(w.title)}</span><button class="link" style="color:var(--muted)" data-rmwish="${w.id}">빼기</button></div>`;}).join("")||`<p class="empty">같이 해보고 싶은 걸 적어 두세요.</p>`}
-    <form class="inl" id="wishForm"><input class="field" maxlength="120" placeholder="예: 바다 보러 가기" aria-label="함께 하고 싶은 것"><button class="ghost">추가</button></form></section>`;
+    <form class="inl" id="wishForm"><input class="field" maxlength="120" placeholder="예: ${["사진관에서 둘이 사진 찍기","같이 요리해서 저녁 먹기","야경 보면서 산책하기","주말에 늦잠 자고 브런치","하루 휴대폰 없이 데이트"][new Date().getDate()%5]}" aria-label="함께 하고 싶은 것"><button class="ghost">추가</button></form></section>`;
   // shelf
   const months=[...new Set(of("stamp").map(e=>kday(e.at).slice(0,7)).concat(data.reactions.filter(r=>r.kind==="stamp").map(r=>kday(r.at).slice(0,7))))].sort().reverse();
   if(months.length)h+=`<section class="card"><h3>지난 병들</h3><div class="shelf">${months.map(mo=>`<div class="minijar"><b>${monthStamps(mo).length}</b><span>${mo.slice(2,4)}년 ${+mo.slice(5)}월</span></div>`).join("")}</div></section>`;
