@@ -1,5 +1,5 @@
 /**
- * Pawprints — 둘만의 기록장 저장소 (Google Apps Script)
+ * Pawprints v2 — 둘만의 기록장 저장소 (Google Apps Script)
  *
  * 스크립트 속성
  *   PIN      : Partner(도장 찍는 사람) 비밀번호 — 기존 값 그대로 사용
@@ -15,9 +15,10 @@ const SHEETS = {
   goals: ["id", "name", "stage", "active", "next_step", "created_at", "author"],
   settings: ["key", "value"]
 };
-const TYPES = ["practice", "moment", "stamp"];
-const KINDS = ["stamp", "emoji", "comment"];
-const SETTING_KEYS = ["start", "agreements"];
+const TYPES = ["practice", "moment", "stamp", "note", "order", "answer", "rule", "wish"];
+const KINDS = ["stamp", "emoji", "comment", "heart", "done"];
+// 설정마다 바꿀 수 있는 사람: any = 둘 다
+const SETTING_KEYS = { start: "any", agreements: "any", signal: "pet", reward: "partner" };
 
 function doGet() {
   return json_({ error: "auth" });
@@ -42,9 +43,9 @@ function doPost(e) {
       case "removeEntry": removeEntry_(body.id, role); break;
       case "react": out.added = react_(body.reaction || {}, role); break;
       case "removeReaction": removeReaction_(body.id, role); break;
-      case "star": star_(body.id, !!body.on); break;
-      case "setGoal": out.added = setGoal_(body.goal || {}, role); break;
-      case "setSetting": setSetting_(body.k, body.v); break;
+      case "star": if (role !== "partner") throw new Error("forbidden"); star_(body.id, !!body.on); break;
+      case "setGoal": if (role !== "partner") throw new Error("forbidden"); out.added = setGoal_(body.goal || {}, role); break;
+      case "setSetting": setSetting_(body.k, body.v, role); break;
       default: return json_({ error: "bad_request" });
     }
     const data = readAll_();
@@ -74,14 +75,23 @@ function list_(v) { return (Array.isArray(v) ? v : []).map(x => clean_(x, 20)).f
 function num_(v, lo, hi) { const n = Number(v); return n >= lo && n <= hi ? Math.round(n) : ""; }
 
 function addEntry_(e, role) {
-  const type = TYPES.indexOf(e.type) >= 0 ? e.type : "moment";
-  const title = clean_(e.title, 120);
+  const type = TYPES.indexOf(e.type) >= 0 ? e.type : "note";
+  let title = clean_(e.title, 300);
+  let ref = clean_(e.goal_id, 12);
+  if (type === "stamp" && role !== "partner") throw new Error("forbidden");
+  if (type === "order" && role !== "partner") {
+    // 연이는 지시 서랍에서 뽑을 때만 지시를 만들 수 있어요 (내용은 파트너가 쓴 것)
+    const gs = sheet_("goals"), r = findRow_(gs, ref);
+    if (r < 0 || gs.getRange(r, 4).getValue() !== "1") throw new Error("forbidden");
+    title = String(gs.getRange(r, 2).getValue());
+    gs.getRange(r, 4).setValue("");
+  }
   if (!title) throw new Error("empty");
+  const special = type === "rule" && role === "partner" ? "1" : "";
   const id = Utilities.getUuid().slice(0, 8);
-  sheet_("entries").appendRow([id, type, role, new Date().toISOString(), title, clean_(e.goal_id, 12),
+  sheet_("entries").appendRow([id, type, role, new Date().toISOString(), title, ref,
     list_(e.context), list_(e.reinforcers), num_(e.mood, 1, 5), num_(e.stage, 1, 3), e.paused ? "1" : "",
-    list_(e.tags), clean_(e.note, 500), ""]);
-  if (type === "practice" && e.goal_id && num_(e.stage, 1, 3)) bumpGoal_(e.goal_id, num_(e.stage, 1, 3));
+    list_(e.tags), clean_(e.note, 500), special]);
   return id;
 }
 
@@ -109,7 +119,9 @@ function updateEntry_(id, e, role) {
 function removeEntry_(id, role) {
   const sh = sheet_("entries"), r = findRow_(sh, id);
   if (r < 0) return;
-  if (sh.getRange(r, 3).getValue() !== role) throw new Error("forbidden");
+  const author = sh.getRange(r, 3).getValue(), type = sh.getRange(r, 2).getValue();
+  const shared = (role === "partner" && ["rule", "wish", "order"].indexOf(type) >= 0) || type === "wish";
+  if (author !== role && !shared) throw new Error("forbidden");
   sh.deleteRow(r);
   const rs = sheet_("reactions"), vals = rs.getDataRange().getValues();
   for (let i = vals.length - 1; i >= 1; i--) if (String(vals[i][1]) === String(id)) rs.deleteRow(i + 1);
@@ -124,8 +136,9 @@ function star_(id, on) {
 function react_(x, role) {
   const kind = KINDS.indexOf(x.kind) >= 0 ? x.kind : null;
   if (!kind) throw new Error("bad");
-  const value = clean_(x.value, kind === "comment" ? 120 : 8);
-  if (kind !== "stamp" && !value) throw new Error("empty");
+  if (kind === "stamp" && role !== "partner") throw new Error("forbidden");
+  const value = clean_(x.value, kind === "comment" || kind === "done" ? 120 : 8);
+  if ((kind === "comment" || kind === "emoji") && !value) throw new Error("empty");
   const id = Utilities.getUuid().slice(0, 8);
   sheet_("reactions").appendRow([id, clean_(x.entry_id, 12), kind, value, role, new Date().toISOString()]);
   return id;
@@ -166,12 +179,15 @@ function bumpGoal_(id, stage) {
   if (stage > cur) sh.getRange(r, 3).setValue(stage);
 }
 
-function setSetting_(k, v) {
-  if (SETTING_KEYS.indexOf(k) < 0) throw new Error("bad");
+function setSetting_(k, v, role) {
+  const who = SETTING_KEYS[k];
+  if (!who) throw new Error("bad");
+  if (who !== "any" && who !== role) throw new Error("forbidden");
   let val = clean_(v, 2000);
   if (k === "start" && !/^\d{4}-\d{2}-\d{2}$/.test(val)) throw new Error("bad");
+  if (k === "signal" && ["green", "yellow", "red"].indexOf(val) < 0) throw new Error("bad");
   putSetting_(k, val);
-  if (k === "agreements") putSetting_("agreements_at", new Date().toISOString());
+  putSetting_(k + "_at", new Date().toISOString());
 }
 
 function putSetting_(k, v) {
