@@ -198,6 +198,14 @@ span.act small{font-size:11px;margin-left:2px}
 .gate .who i{width:34px;height:34px;flex:none;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat}
 .gate .who .p i{background:var(--ink)}
 .pill.me{border:0;font:inherit;cursor:pointer}
+.boot{position:fixed;inset:0;z-index:100;background:#FEF8EC;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+.boot.out{opacity:0;pointer-events:none}
+.bootimg{position:relative;width:min(100vw,calc(100vh * 1408 / 2848));width:min(100vw,calc(100dvh * 1408 / 2848));aspect-ratio:1408/2848}
+.bootimg img{display:block;width:100%;height:100%}
+.bootimg i{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(254,248,236,.9) 52%,rgba(254,248,236,0) 72%);animation:veil 1.2s ease-in-out infinite}
+.bootimg i:nth-child(3){animation-delay:.2s}.bootimg i:nth-child(4){animation-delay:.4s}
+@keyframes veil{0%,100%{opacity:1}35%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.bootimg i{animation:none;opacity:0}}
 .splash{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
 .splash h1{font-family:var(--display);font-weight:400;font-size:30px;margin:6px 0 0}
 .splash .steps{display:flex;gap:10px;align-items:flex-end;height:56px}
@@ -207,8 +215,13 @@ span.act small{font-size:11px;margin-left:2px}
 @media (prefers-reduced-motion:reduce){.splash .steps i{animation:none;opacity:.6}}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);z-index:50}
 </style>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preload" as="image" href="splash.webp?v=1" fetchpriority="high">
+<link rel="preload" as="image" href="board.webp?v=3">
 </head>
 <body>
+<div class="boot" id="boot" role="status" aria-label="Pawprints 불러오는 중"><div class="bootimg"><img src="splash.webp?v=1" alt="" fetchpriority="high" decoding="async"><i style="left:35.5%;top:10.2%"></i><i style="left:50%;top:7.6%"></i><i style="left:64.3%;top:10.2%"></i></div></div>
 <div class="wrap" id="app"></div>
 <button class="fab" id="fab" hidden><i></i><span id="fabTxt">한 줄 남기기</span></button>
 <nav class="nav" id="nav" hidden aria-label="메뉴"><div class="in">
@@ -241,7 +254,13 @@ let key="",role="",data={entries:[],reactions:[],goals:[],settings:{}};
 let view="today",logMode="list",calMonth="",calDay="",sheet=null,ui={},jarPeek=null;
 let gateWho="";const busyHeart={};let ready=false;
 const boardReady=new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src="board.webp?v=3";});
-function markReady(){if(ready)return;ready=true;clearTimeout(markReady._t);render();}
+const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve();
+const T0=Date.now();
+function bootShow(){ready=false;const b=$("boot");if(b){b.hidden=false;b.classList.remove("out");}clearTimeout(markReady._t);markReady._t=setTimeout(markReady,8000);}
+async function markReady(){if(ready)return;ready=true;clearTimeout(markReady._t);render();
+  const wait=Math.max(0,700-(Date.now()-T0));if(wait)await new Promise(r=>setTimeout(r,wait));
+  const b=$("boot");if(b){b.classList.add("out");setTimeout(()=>{if(ready)b.hidden=true;},400);}}
+markReady._t=setTimeout(markReady,8000);
 try{key=localStorage.getItem("pw2-key")||"";role=localStorage.getItem("pw2-role")||"";localStorage.removeItem("paw-key");localStorage.removeItem("paw-role");}catch(e){}
 
 const $=id=>document.getElementById(id);
@@ -430,8 +449,6 @@ function render(){
       ?`<p class="muted">둘만의 기록장이에요.<br>누구로 들어갈까요?</p><div class="who"><button data-who="pet"><i></i><div><b>연이</b><span>기록하고 도장 받는 쪽</span></div></button><button data-who="partner" class="p"><i></i><div><b>파트너</b><span>도장 찍고 지시하는 쪽</span></div></button></div>`
       :`<p class="muted"><b>${NAME[gateWho]}</b> 비밀번호를 넣어 주세요.</p><form id="gateForm"><input class="field" id="gateIn" type="password" inputmode="numeric" autocomplete="current-password" aria-label="${NAME[gateWho]} 비밀번호" required><button class="btn" id="gateBtn">${NAME[gateWho]}(으)로 들어가기</button><button type="button" class="link" data-who="">← 다시 고르기</button></form>`)+`</div>`;
     if(gateWho){const i=$("gateIn");if(i)i.focus();}return;}
-  if(!ready){$("nav").hidden=true;$("fab").hidden=true;$("app").innerHTML=`<div class="splash" role="status" aria-label="불러오는 중"><div class="steps"><i></i><i></i><i></i></div><h1>Pawprints</h1><p class="muted small">도장 꺼내는 중…</p></div>`;
-    clearTimeout(markReady._t);markReady._t=setTimeout(markReady,8000);return;}
   $("nav").hidden=false;$("fab").hidden=false;$("fabTxt").textContent=role==="partner"?"도장 · 한 줄":"한 줄 남기기";
   const n=data.settings.start?dayDiff(data.settings.start,today())+1:null;
   const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${NAME[role]}(으)로 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
@@ -448,9 +465,12 @@ document.addEventListener("submit",async e=>{
   const val=sel=>{const x=f.querySelector(sel||"input,textarea");return x?x.value.trim():"";};
   try{
   if(f.id==="gateForm"){const v=$("gateIn").value.trim();if(!v)return;$("gateBtn").disabled=true;
-    try{key=v;const d=await api({action:"check"});
-      if(d.role!==gateWho){key="";$("gateBtn").disabled=false;$("gateIn").value="";toast(`이 비밀번호는 ${NAME[d.role]} 비밀번호예요.`);return;}
-      role=d.role;gateWho="";try{localStorage.setItem("pw2-key",key);localStorage.setItem("pw2-role",role);}catch(x){}location.hash="today";render();refresh();}catch(x){key="";$("gateBtn").disabled=false;toast(errMsg(x));}return;}
+    bootShow();
+    try{key=v;const d=await api({action:"read"});
+      if(d.role!==gateWho){key="";await markReady();$("gateBtn").disabled=false;$("gateIn").value="";toast(`이 비밀번호는 ${NAME[d.role]} 비밀번호예요.`);return;}
+      role=d.role;gateWho="";try{localStorage.setItem("pw2-key",key);localStorage.setItem("pw2-role",role);}catch(x){}apply(d);location.hash="today";
+      await Promise.race([Promise.all([boardReady,fontsReady]),new Promise(r=>setTimeout(r,3000))]);markReady();}
+    catch(x){key="";await markReady();const gb=$("gateBtn");if(gb)gb.disabled=false;toast(errMsg(x));}return;}
   if(f.id==="sheetForm"){const v=$("stext").value.trim();if(!v){toast("내용을 적어 주세요.");return;}$("ssave").disabled=true;const t=sheet.type;
     try{await write({action:"addEntry",entry:{type:t,title:v}});sheet=null;renderSheet();burst();toast(t==="stamp"?"칭찬 도장을 찍었어요":"남겼어요");notify(other(),t==="stamp"?"칭찬 도장이 찍혔어요":"새 기록이 있어요");}catch(x){$("ssave").disabled=false;}return;}
   if(f.dataset.doneform){const id=f.dataset.doneform;await write({action:"react",reaction:{entry_id:id,kind:"done",value:val()}},"완료했어요");delete ui["o"+id];render();burst();notify("partner","지시를 완료했어요");return;}
@@ -511,15 +531,15 @@ document.addEventListener("click",async e=>{
   if(b.id==="setToggle"){ui.settings=!ui.settings;render();return;}
   if(b.id==="copyTopic"){try{await navigator.clipboard.writeText($("topic").textContent);toast("복사했어요");}catch(x){toast("길게 눌러 복사해 주세요");}return;}
   if(b.id==="logout"||b.id==="switchMe"){if(b.id==="switchMe"&&!b.dataset.armed){b.dataset.armed=1;b.textContent="나갈까요?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=NAME[role]+" ⇄";}},2500);return;}
-    key="";role="";gateWho="";ready=false;try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
+    key="";role="";gateWho="";try{localStorage.removeItem("pw2-key");localStorage.removeItem("pw2-role");}catch(x){}data={entries:[],reactions:[],goals:[],settings:{}};render();return;}
   }catch(x){}
 });
 async function refresh(){
   if(!key)return;
-  try{apply(await api({action:"read"}));if(!ready){await Promise.race([boardReady,new Promise(r=>setTimeout(r,2500))]);markReady();return;}const busy=sheet||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();}
+  try{apply(await api({action:"read"}));if(!ready){await Promise.race([Promise.all([boardReady,fontsReady]),new Promise(r=>setTimeout(r,3000))]);markReady();return;}const busy=sheet||(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName));if(!busy)render();}
   catch(e){if(!ready&&!(e&&e.code==="pin")){markReady();toast("연결을 확인해 주세요.");}if(e&&e.code==="pin"){key="";role="";try{localStorage.removeItem("pw2-key");}catch(x){}render();toast("비밀번호가 바뀌었어요. 다시 들어와 주세요.");}}
 }
-route(); if(key)refresh();
+route(); if(key)refresh(); else fontsReady.then(markReady);
 setInterval(()=>{if(document.visibilityState==="visible")refresh();},60000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh();});
 </script>
