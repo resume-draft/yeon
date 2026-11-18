@@ -79,6 +79,14 @@ textarea.field{min-height:70px;resize:vertical}
 .card.alert{border-color:var(--red);background:color-mix(in srgb,var(--red) 7%,var(--surface))}
 
 /* order */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:0;font-size:12px;color:var(--sage-ink);min-width:0}
+.wd i{width:32px;height:32px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--sage-ink) 35%,transparent);background:var(--surface);display:grid;place-items:center;font-style:normal;color:#fff;font-size:15px}
+.wd[aria-pressed="true"] i{background:var(--sage-ink);border-color:var(--sage-ink)}
+.wd.now span{font-weight:700;color:var(--ink)}
+.wd.fut{opacity:.4}
+.wd:disabled{cursor:default}
+.wcount{font-size:13px;color:var(--sage-ink)}
 .order{background:var(--sage);border-color:transparent}
 .order .txt{font-family:var(--display);font-size:19px;line-height:1.4;overflow-wrap:anywhere}
 .order .from{font-size:12px;color:var(--sage-ink)}
@@ -257,8 +265,16 @@ function notify(to,message){
 /* ---------- derived ---------- */
 const rx=(id,kind)=>data.reactions.filter(r=>r.entry_id===id&&(!kind||r.kind===kind));
 const of=t=>data.entries.filter(e=>e.type===t);
-const activeOrders=()=>of("order").filter(o=>!rx(o.id,"done").length);
-const drawer=()=>data.goals.filter(g=>g.active==="1");
+const addDays=(d,n)=>new Date(Date.parse(d+"T00:00:00Z")+n*864e5).toISOString().slice(0,10);
+const weekStart=d=>addDays(d,-((new Date(d+"T00:00:00Z").getUTCDay()+6)%7));
+const isDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||"");
+const orderWeek=o=>isDate(o.goal_id)?weekStart(o.goal_id):weekStart(kday(o.at));
+const weekOrder=w=>of("order").filter(o=>orderWeek(o)===w).pop();
+const checks=o=>rx(o.id,"done").filter(r=>isDate(r.value));
+const WD=["월","화","수","목","금","토","일"];
+function weekRow(o,mine){const ws=orderWeek(o),t=today(),c=checks(o);
+  return`<div class="week${mine?"":" ro"}" role="group" aria-label="요일별 체크">${WD.map((n,i)=>{const d=addDays(ws,i),on=c.some(r=>r.value===d),fut=d>t;
+    return`<button class="wd${d===t?" now":""}${fut?" fut":""}" data-wchk="${o.id}" data-date="${d}" aria-pressed="${on}" aria-label="${n}요일 ${on?"지킴":"아직"}" ${!mine||fut?"disabled":""}><i>${on?"✓":""}</i><span>${n}</span></button>`;}).join("")}</div>`;}
 const qIndex=d=>Math.floor(Date.parse(d+"T00:00:00Z")/864e5)%QUESTIONS.length;
 function monthStamps(ym){
   const a=of("stamp").filter(e=>kday(e.at).slice(0,7)===ym).map(e=>({at:e.at,text:e.title}));
@@ -279,18 +295,21 @@ function vToday(){
   }else{
     h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}" role="img" aria-label="${sig[1]}"><i></i><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
   }
-  // orders
-  const ao=activeOrders().slice().reverse();
-  if(role==="pet"){
-    ao.forEach(o=>{const u=ui["o"+o.id]||{};h+=`<section class="card order"><span class="from">파트너의 지시 · ${ago(o.at)}</span><p class="txt">${esc(o.title)}</p>
-      ${u.open?`<form class="inl" data-doneform="${o.id}"><input class="field" maxlength="120" placeholder="한마디 남기기 (선택)" aria-label="완료 한마디"><button class="btn" style="padding:8px 14px">완료</button></form>`:`<button class="btn soft" data-doneopen="${o.id}">완료했어요</button>`}</section>`;});
-    if(!ao.length&&drawer().length)h+=`<section class="card"><div class="hd"><span class="small muted">지시 서랍에 ${drawer().length}개가 있어요.</span><button class="link" id="draw">하나 뽑기</button></div></section>`;
-  }else{
-    ao.forEach(o=>{h+=`<section class="card order"><span class="from">보낸 지시 · ${ago(o.at)} · 아직 진행 중</span><p class="txt">${esc(o.title)}</p><div class="row"><button class="link" data-cancel="${o.id}">거두기</button></div></section>`;});
-    h+=ui.orderForm?`<section class="card"><h2>지시 보내기</h2><form class="inl" id="orderForm" style="flex-direction:column"><textarea class="field" maxlength="300" placeholder="예: 오늘은 12시 전에 자기" aria-label="지시"></textarea>
-        <label class="small"><input type="checkbox" id="toDrawer"> 지금 보내지 않고 서랍에 넣어 두기</label>
-        <div class="row"><button type="button" class="ghost" id="orderCancel">취소</button><button class="btn" style="flex:1">보내기</button></div></form></section>`
-      :`<button class="btn soft" id="orderOpen">지시 보내기</button>`;
+  // weekly order
+  const ws=weekStart(t), wo=weekOrder(ws);
+  if(wo){const n=checks(wo).length;
+    h+=`<section class="card order"><div class="hd"><span class="from">이번 주의 지시 · ${+ws.slice(5,7)}월 ${+ws.slice(8)}일 주</span><span class="wcount">${n} / 7일</span></div>`;
+    if(role==="partner"&&ui.orderEdit)h+=`<form class="inl" id="orderForm" style="flex-direction:column"><textarea class="field" maxlength="120" aria-label="이번 주의 지시">${esc(wo.title)}</textarea><div class="row"><button type="button" class="ghost" id="orderCancel">취소</button><button class="btn" style="flex:1">고치기</button></div></form>`;
+    else h+=`<p class="txt">${esc(wo.title)}</p>`;
+    h+=weekRow(wo,role==="pet");
+    h+=role==="pet"?`<p class="small" style="color:var(--sage-ink)">지킨 날을 눌러 체크해요. 지난 요일도 체크할 수 있어요.</p>`
+      :ui.orderEdit?"":`<div class="row"><button class="link" id="orderEditOpen">고치기</button><button class="link" style="color:var(--muted)" data-cancel="${wo.id}">거두기</button></div>`;
+    h+=`</section>`;
+  }else if(role==="partner"){
+    const prev=weekOrder(addDays(ws,-7));
+    h+=ui.orderForm?`<section class="card"><h2>이번 주의 지시</h2><form class="inl" id="orderForm" style="flex-direction:column"><textarea class="field" maxlength="120" placeholder="예: 매일 12시 전에 자기" aria-label="이번 주의 지시"></textarea>
+        <div class="row"><button type="button" class="ghost" id="orderCancel">취소</button><button class="btn" style="flex:1">정하기</button></div></form></section>`
+      :`<section class="card"><div class="hd"><span class="small muted">이번 주 지시는 없어요. 정하고 싶을 때만 정해요.</span></div><div class="row"><button class="btn soft" id="orderOpen">정하기</button>${prev?`<button class="ghost" id="orderCarry">지난주 지시 이어가기</button>`:""}</div></section>`;
   }
   // question
   const qi=qIndex(t), ans=of("answer").filter(a=>a.goal_id===t), mine=ans.find(a=>a.author===role), theirs=ans.find(a=>a.author!==role);
@@ -319,7 +338,7 @@ function entryCard(e){
   const myHeart=hearts.find(r=>r.author===role), u=ui[e.id]||{};
   let label=TYPE[t]||"한 줄", body=`<p class="txt">${esc(e.title)}</p>`, sub="";
   if(t==="answer"){const d=e.goal_id;sub=`<p class="sub">Q. ${esc(QUESTIONS[qIndex(d)]||"")}</p>`;}
-  if(t==="order")sub=done?`<p class="sub">✓ 완료 · ${ago(done.at)}${done.value?` — “${esc(done.value)}”`:""}</p>`:`<p class="sub">진행 중</p>`;
+  if(t==="order"){const w=orderWeek(e),c=checks(e);label="이번 주의 지시";sub=`<p class="sub">${+w.slice(5,7)}월 ${+w.slice(8)}일 주 · ${c.length} / 7일 지킴</p>${weekRow(e,false)}`;}
   if(e.note)sub+=`<p class="sub">${esc(e.note)}</p>`;
   let acts=`<button class="act" data-heart="${e.id}" aria-pressed="${!!myHeart}">♥${hearts.length?" "+hearts.length:""}</button><button class="act" data-cmt="${e.id}">댓글</button>`;
   if(role==="partner"&&e.author==="pet"&&t!=="order"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
@@ -352,12 +371,6 @@ function vUs(){
     ${ok.length?`<div>${ok.map(r=>`<div class="li"><span class="t">${esc(r.title)}</span>${role==="partner"?`<button class="link" style="color:var(--muted)" data-rmrule="${r.id}">빼기</button>`:""}</div>`).join("")}</div>`:`<p class="empty">아직 정한 약속이 없어요.</p>`}
     ${pend.length?`<span class="lbl">연이의 제안</span>${pend.map(r=>`<div class="li"><span class="t">${esc(r.title)}</span>${role==="partner"?`<button class="link" data-okrule="${r.id}">승인</button><button class="link" style="color:var(--muted)" data-rmrule="${r.id}">거절</button>`:`<span class="badge">검토 중</span>`}</div>`).join("")}`:""}
     <form class="inl" id="ruleForm"><input class="field" maxlength="120" placeholder="${role==="partner"?"새 약속 추가":"약속 제안하기"}" aria-label="약속"><button class="ghost">${role==="partner"?"추가":"제안"}</button></form></section>`;
-  // drawer
-  const dr=drawer();
-  if(role==="partner")h+=`<section class="card"><div class="hd"><h3>지시 서랍</h3><span class="small muted">${dr.length}개</span></div><p class="small muted">생각날 때 넣어 두면, 연이가 원할 때 하나씩 뽑아요. 뽑기 전에는 연이에게 내용이 보이지 않아요.</p>
-    ${dr.map(g=>`<div class="li"><span class="t">${esc(g.name)}</span><button class="link" data-sendg="${g.id}">지금 보내기</button><button class="link" style="color:var(--muted)" data-rmg="${g.id}">빼기</button></div>`).join("")}
-    <form class="inl" id="drawerForm"><input class="field" maxlength="120" placeholder="서랍에 넣을 지시" aria-label="서랍에 넣을 지시"><button class="ghost">넣기</button></form></section>`;
-  else h+=`<section class="card"><div class="hd"><h3>지시 서랍</h3><span class="small muted">${dr.length}개</span></div><p class="small muted">파트너가 넣어 둔 지시예요. 받고 싶을 때 하나를 뽑으면 오늘 화면에 나타나요.</p>${dr.length&&!activeOrders().length?`<button class="btn soft" id="draw">하나 뽑기</button>`:dr.length?`<p class="small muted">진행 중인 지시를 마치면 뽑을 수 있어요.</p>`:""}</section>`;
   // wishes
   const ws=of("wish").slice().reverse();
   h+=`<section class="card"><h3>함께 하고 싶은 것</h3>${ws.map(w=>{const d=rx(w.id,"done")[0];return`<div class="li"><button class="check" data-wish="${w.id}" aria-pressed="${!!d}" aria-label="${d?"완료 취소":"완료"}">${d?"✓":""}</button><span class="t${d?" done":""}">${esc(w.title)}</span><button class="link" style="color:var(--muted)" data-rmwish="${w.id}">빼기</button></div>`;}).join("")||`<p class="empty">같이 해보고 싶은 걸 적어 두세요.</p>`}
@@ -416,7 +429,10 @@ document.addEventListener("submit",async e=>{
   if(f.id==="sheetForm"){const v=$("stext").value.trim();if(!v){toast("내용을 적어 주세요.");return;}$("ssave").disabled=true;const t=sheet.type;
     try{await write({action:"addEntry",entry:{type:t,title:v}});sheet=null;renderSheet();burst();toast(t==="stamp"?"칭찬 도장을 찍었어요":"남겼어요");notify(other(),t==="stamp"?"칭찬 도장이 찍혔어요":"새 기록이 있어요");}catch(x){$("ssave").disabled=false;}return;}
   if(f.dataset.doneform){const id=f.dataset.doneform;await write({action:"react",reaction:{entry_id:id,kind:"done",value:val()}},"완료했어요");delete ui["o"+id];render();burst();notify("partner","지시를 완료했어요");return;}
-  if(f.id==="orderForm"){const v=val("textarea");if(!v)return;if($("toDrawer").checked){await write({action:"setGoal",goal:{name:v}},"서랍에 넣었어요");}else{await write({action:"addEntry",entry:{type:"order",title:v}},"지시를 보냈어요");notify("pet","새 지시가 왔어요");}ui.orderForm=false;render();return;}
+  if(f.id==="orderForm"){const v=val("textarea");if(!v)return;const ws=weekStart(today()),wo=weekOrder(ws);
+    if(wo&&ui.orderEdit){await write({action:"updateEntry",id:wo.id,entry:{title:v}},"고쳤어요");notify("pet","이번 주의 지시가 바뀌었어요");}
+    else{await write({action:"addEntry",entry:{type:"order",title:v,goal_id:ws}},"이번 주의 지시를 정했어요");notify("pet","이번 주의 지시가 왔어요");}
+    ui.orderForm=false;ui.orderEdit=false;render();return;}
   if(f.id==="ansForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"answer",title:v,goal_id:today()}},"답했어요");notify(other(),"오늘의 질문에 답했어요");return;}
   if(f.id==="rewardForm"){await write({action:"setSetting",k:"reward",v:val()},"보상을 정했어요");ui.reward=false;render();return;}
   if(f.dataset.cmtform){const v=val();if(!v)return;const id=f.dataset.cmtform;await write({action:"react",reaction:{entry_id:id,kind:"comment",value:v}});ui[id]={};render();notify(other(),"새 댓글이 있어요");return;}
@@ -437,10 +453,12 @@ document.addEventListener("click",async e=>{
   if(b.id==="fab"){openSheet();return;}
   if(d.sheet){openSheet(d.sheet);return;}
   if(d.sig){if(data.settings.signal===d.sig)return;await write({action:"setSetting",k:"signal",v:d.sig},"신호를 남겼어요");notify("partner",d.sig==="red"?"연이가 빨간불을 켰어요":"연이의 컨디션이 바뀌었어요");return;}
-  if(d.doneopen){ui["o"+d.doneopen]={open:true};render();const i=document.querySelector(`[data-doneform="${d.doneopen}"] input`);if(i)i.focus();return;}
-  if(b.id==="draw"){const g=drawer();if(!g.length)return;const pick=g[Math.floor(Math.random()*g.length)];await write({action:"addEntry",entry:{type:"order",goal_id:pick.id}},"지시를 뽑았어요");notify("partner","연이가 서랍에서 지시를 뽑았어요");if(view!=="today")location.hash="today";return;}
   if(b.id==="orderOpen"){ui.orderForm=true;render();const x=document.querySelector("#orderForm textarea");if(x)x.focus();return;}
-  if(b.id==="orderCancel"){ui.orderForm=false;render();return;}
+  if(b.id==="orderCancel"){ui.orderForm=false;ui.orderEdit=false;render();return;}
+  if(b.id==="orderEditOpen"){ui.orderEdit=true;render();const x=document.querySelector("#orderForm textarea");if(x)x.focus();return;}
+  if(b.id==="orderCarry"){const ws=weekStart(today()),prev=weekOrder(addDays(ws,-7));if(!prev||weekOrder(ws))return;await write({action:"addEntry",entry:{type:"order",title:prev.title,goal_id:ws}},"지난주 지시를 이어가요");notify("pet","이번 주의 지시가 왔어요");return;}
+  if(d.wchk){if(role!=="pet")return;const o=data.entries.find(x=>x.id===d.wchk);if(!o)return;const ex=checks(o).find(r=>r.value===d.date&&r.author==="pet");b.disabled=true;
+    if(ex)await write({action:"removeReaction",id:ex.id});else{await write({action:"react",reaction:{entry_id:o.id,kind:"done",value:d.date}},"체크했어요");notify("partner","연이가 이번 주 지시를 지켰어요");}return;}
   if(d.cancel){if(!b.dataset.armed){b.dataset.armed=1;b.textContent="정말 거둘까요?";return;}await write({action:"removeEntry",id:d.cancel},"지시를 거뒀어요");return;}
   if(d.jar!=null){jarPeek=jarPeek===+d.jar?null:+d.jar;render();return;}
   if(b.id==="peekx"){jarPeek=null;render();return;}
@@ -456,8 +474,6 @@ document.addEventListener("click",async e=>{
   if(d.delyes){await write({action:"removeEntry",id:d.delyes},"지웠어요");return;}
   if(d.okrule){await write({action:"star",id:d.okrule,on:true},"약속을 승인했어요");notify("pet","제안한 약속이 승인됐어요");return;}
   if(d.rmrule){await write({action:"removeEntry",id:d.rmrule},"뺐어요");return;}
-  if(d.sendg){const g=data.goals.find(x=>x.id===d.sendg);await write({action:"addEntry",entry:{type:"order",title:g.name}},"지시를 보냈어요");await write({action:"setGoal",goal:{id:g.id,active:false}});notify("pet","새 지시가 왔어요");return;}
-  if(d.rmg){await write({action:"setGoal",goal:{id:d.rmg,active:false}},"서랍에서 뺐어요");return;}
   if(d.wish){const done=rx(d.wish,"done")[0];if(done)await write({action:"removeReaction",id:done.id});else await write({action:"react",reaction:{entry_id:d.wish,kind:"done",value:""}},"함께 해냈어요");return;}
   if(d.rmwish){await write({action:"removeEntry",id:d.rmwish},"뺐어요");return;}
   if(b.id==="setToggle"){ui.settings=!ui.settings;render();return;}
