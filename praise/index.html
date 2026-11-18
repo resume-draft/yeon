@@ -379,7 +379,7 @@ function vToday(){
   let slots=""; for(let i=0;i<Math.min(PER,st.length);i++){const x=XS[i%5]/JW*100,y=YS[Math.floor(i/5)]/JH*100,rot=((i*37)%21)-10;const n=i+1,sp=n%5===0;slots+=`<button class="slot on${sp?" sp":""}" style="left:${x}%;top:${y}%" data-jar="${i}" aria-label="${n}번 도장">${artHtml(stampArt(n),sp?Math.round(rot/2):rot)}</button>`;}
 
   const rw=s.reward||"";
-  h+=`<section style="display:flex;flex-direction:column;gap:8px"><div class="jarcap"><b>${+mm}월의 병</b><span class="small muted">칭찬 도장 ${Math.min(st.length,PER)} / ${PER}</span></div>
+  h+=`<section style="display:flex;flex-direction:column;gap:8px"><div class="jarcap"><b>${+mm}월의 유리병</b><span class="small muted">칭찬 도장 ${Math.min(st.length,PER)} / ${PER}</span></div>
     <div class="board">${slots}<div class="plaque">${yy}. ${mm}. ${dd}</div></div>
     ${jarPeek!=null&&st[jarPeek]?`<div class="peek"><p>${esc(st[jarPeek].text)}<br><span class="small muted">${dayLabel(kday(st[jarPeek].at))}</span>${role==="partner"?(ui.peekDel?` <span class="small">· 지울까요? <button class="danger" data-stampdel="${st[jarPeek].eid?"e:"+st[jarPeek].eid:"r:"+st[jarPeek].rid}">지우기</button> <button class="link" id="peekDelNo">아니요</button></span>`:` <button class="link small" style="color:var(--muted)" id="peekDel">지우기</button>`):""}</p><button class="link" id="peekx">닫기</button></div>`:""}
     ${ui.reward?`<form class="inl" id="rewardForm"><input class="field" maxlength="100" value="${esc(rw)}" placeholder="병이 다 차면 줄 보상" aria-label="보상"><button class="ghost">저장</button></form>`
