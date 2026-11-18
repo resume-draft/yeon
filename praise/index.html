@@ -69,11 +69,11 @@ textarea.field{min-height:70px;resize:vertical}
 
 /* signal */
 .sig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.sig button{border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px}
-.sig button i{width:20px;height:20px;border-radius:50%;background:var(--c);opacity:.35}
+.sig button{border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:14px 4px;display:flex;justify-content:center;align-items:center}
+.sig button i{width:30px;height:30px;border-radius:50%;background:var(--c);opacity:.35}
 .sig button[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--surface))}
 .sig button[aria-pressed="true"] i{opacity:1;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 25%,transparent)}
-.sigview{display:flex;align-items:center;gap:12px}
+.sigview{display:flex;align-items:center;gap:14px;padding:5px}
 .sigview i{width:28px;height:28px;border-radius:50%;background:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent);flex:none}
 .sigview b{font-family:var(--display);font-weight:400;font-size:18px}
 .card.alert{border-color:var(--red);background:color-mix(in srgb,var(--red) 7%,var(--surface))}
@@ -274,10 +274,10 @@ function vToday(){
   // signal
   if(role==="pet"){
     h+=`<section class="card"><div class="hd"><h2>오늘 내 컨디션</h2>${s.signal_at?`<span class="small muted">${ago(s.signal_at)}</span>`:""}</div>
-      <div class="sig" role="group" aria-label="컨디션 신호등">${Object.entries(SIGNALS).map(([k,[n,d,c]])=>`<button data-sig="${k}" style="--c:${c}" aria-pressed="${s.signal===k}" aria-label="${d}"><i></i>${n}</button>`).join("")}</div>
+      <div class="sig" role="group" aria-label="컨디션 신호등">${Object.entries(SIGNALS).map(([k,[n,d,c]])=>`<button data-sig="${k}" style="--c:${c}" aria-pressed="${s.signal===k}" aria-label="${d}"><i></i></button>`).join("")}</div>
       <p class="small muted">빨강은 언제든 눌러도 돼요. 이유를 묻지 않기로 해요.</p></section>`;
   }else{
-    h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}"><i></i><div><b>${sig[1]}</b><p class="small muted">${ago(s.signal_at)}</p></div></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
+    h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}" role="img" aria-label="${sig[1]}"><i></i><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
   }
   // orders
   const ao=activeOrders().slice().reverse();
