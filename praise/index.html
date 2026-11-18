@@ -351,7 +351,7 @@ function entryCard(e){
   if(e.note&&t!=="answer")sub+=`<p class="sub">${esc(e.note)}</p>`;
   const hr=e.author==="pet"?"partner":"pet", hOn=hearts.some(r=>r.author===hr);
   let acts=(role===hr?`<button class="act h-${hr}" data-heart="${e.id}" aria-pressed="${hOn}" aria-label="하트">♥</button>`:hOn?`<span class="act h-${hr}" aria-pressed="true" aria-label="${NAME[hr]}의 하트">♥ <small>${NAME[hr]}</small></span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
-  if(role==="partner"&&e.author==="pet"&&t!=="order"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
+  if(role==="partner"&&e.author==="pet"&&t!=="order"&&t!=="answer"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
   if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:auto;color:var(--muted)" data-del="${e.id}">지우기</button>`;
   return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"파트너":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
     ${body}${sub}
