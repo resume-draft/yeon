@@ -109,10 +109,11 @@ textarea.field{min-height:70px;resize:vertical}
 .board{container-type:inline-size}
 .ill{position:absolute;inset:17.5%;background:center/contain no-repeat}
 .slot.sp{z-index:2}
-.slot.sp .ill{inset:4%}
-.emo{position:absolute;inset:0;display:grid;place-items:center;font-size:7.2cqw;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
-.slot.ghost{pointer-events:none;opacity:.28;filter:saturate(.6)}
-.slot.ghost::before{display:none}
+.slot.sp .ill{inset:15.5%}
+.emo{position:absolute;inset:0;display:grid;place-items:center;font-size:5.4cqw;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.slot.ghost{pointer-events:none}
+.slot.ghost::before{content:"";position:absolute;inset:3%;border-radius:50%;background:#FFFDF8}
+.slot.ghost .ill,.slot.ghost .emo{opacity:.3;filter:saturate(.6)}
 .seal{position:absolute;inset:-9%;background:var(--stamp-ink);-webkit-mask:var(--stamp) center/contain no-repeat;mask:var(--stamp) center/contain no-repeat;opacity:.93}
 .plaque{position:absolute;left:50%;top:94.6%;transform:translate(-50%,-50%);width:28%;text-align:center;font-family:var(--display);font-size:clamp(11px,3.4vw,18px);white-space:nowrap;font-variant-numeric:tabular-nums}
 .jarcap{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
