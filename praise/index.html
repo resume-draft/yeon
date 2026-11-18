@@ -106,6 +106,13 @@ textarea.field{min-height:70px;resize:vertical}
 .board{position:relative;width:100%;aspect-ratio:1696/2528;background:#FCF7EE url("board.webp?v=3") center/100% 100% no-repeat;border-radius:18px;overflow:hidden}
 .slot{position:absolute;width:10.6%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:0;background:transparent;padding:0}
 .slot.on::before{content:"";position:absolute;inset:4%;border-radius:50%;background:rgba(255,253,248,.82)}
+.board{container-type:inline-size}
+.ill{position:absolute;inset:17.5%;background:center/contain no-repeat}
+.slot.sp{z-index:2;margin-left:.5%}
+.slot.sp .ill{inset:-11%}
+.emo{position:absolute;inset:0;display:grid;place-items:center;font-size:9.6cqw;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.slot.ghost{pointer-events:none;opacity:.28;filter:saturate(.6)}
+.slot.ghost::before{display:none}
 .seal{position:absolute;inset:-9%;background:var(--stamp-ink);-webkit-mask:var(--stamp) center/contain no-repeat;mask:var(--stamp) center/contain no-repeat;opacity:.93}
 .plaque{position:absolute;left:50%;top:94.6%;transform:translate(-50%,-50%);width:28%;text-align:center;font-family:var(--display);font-size:clamp(11px,3.4vw,18px);white-space:nowrap;font-variant-numeric:tabular-nums}
 .jarcap{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -260,7 +267,15 @@ const QUESTIONS=["오늘 가장 칭찬받고 싶은 일은?","최근에 들은 �
 let key="",role="",data={entries:[],reactions:[],goals:[],settings:{}};
 let view="today",logMode="list",calMonth="",calDay="",sheet=null,ui={},jarPeek=null;
 let gateWho="";const busyHeart={};let ready=false;
-const boardReady=new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src="board.webp?v=3";});
+// 병 도장 그림: 기본은 발자국, 5번째마다 곰 → 토끼 → 병아리 → 개구리 차례로
+const STAMP_MODE="hearts"; // "animals": 5번째마다 곰→토끼→병아리→개구리 / "hearts": 5–25번은 하트 이모지, 30번은 곰
+const STAMP_SPECIAL=["bear","rabbit","chick","frog"], HEARTS=["💓","💗","💖","💝","💘"];
+const stampArt=n=>{if(n%5)return{img:"stamp-paw.webp?v=1"};
+  if(STAMP_MODE==="hearts")return n===30?{img:"stamp-bear.webp?v=1"}:{emo:HEARTS[(n/5-1)%HEARTS.length]};
+  return{img:`stamp-${STAMP_SPECIAL[(n/5-1)%STAMP_SPECIAL.length]}.webp?v=1`};};
+const artHtml=(a,rot)=>a.img?`<span class="ill" style="background-image:url(${a.img});transform:rotate(${rot}deg)"></span>`:`<span class="emo" style="transform:rotate(${rot}deg)">${a.emo}</span>`;
+const loadImg=src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src=src;});
+const boardReady=Promise.all([loadImg("board.webp?v=3"),...(STAMP_MODE==="hearts"?["paw","bear"]:["paw",...STAMP_SPECIAL]).map(k=>loadImg(`stamp-${k}.webp?v=1`))]);
 const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve();
 const T0=Date.now();
 function bootShow(){ready=false;const b=$("boot");if(b){b.hidden=false;b.classList.remove("out");}clearTimeout(markReady._t);markReady._t=setTimeout(markReady,8000);}
@@ -360,7 +375,9 @@ function vToday(){
   const hQ=h;h="";
   // jar
   const ym=t.slice(0,7), st=monthStamps(ym), [yy,mm,dd]=t.split("-");
-  let slots=""; for(let i=0;i<Math.min(PER,st.length);i++){const x=XS[i%5]/JW*100,y=YS[Math.floor(i/5)]/JH*100,rot=((i*37)%21)-10;slots+=`<button class="slot on" style="left:${x}%;top:${y}%" data-jar="${i}" aria-label="${i+1}번 도장"><span class="seal" style="transform:rotate(${rot}deg)"></span></button>`;}
+  let slots=""; for(let i=0;i<Math.min(PER,st.length);i++){const x=XS[i%5]/JW*100,y=YS[Math.floor(i/5)]/JH*100,rot=((i*37)%21)-10;const n=i+1,sp=n%5===0;slots+=`<button class="slot on${sp?" sp":""}" style="left:${x}%;top:${y}%" data-jar="${i}" aria-label="${n}번 도장">${artHtml(stampArt(n),sp?Math.round(rot/2):rot)}</button>`;}
+  // 아직 안 찍힌 5의 배수 칸은 다음 보상을 흐리게 미리 보여줘요
+  for(let i=Math.min(PER,st.length);i<PER;i++){const n=i+1;if(n%5)continue;const x=XS[i%5]/JW*100,y=YS[Math.floor(i/5)]/JH*100;slots+=`<span class="slot sp ghost" style="left:${x}%;top:${y}%" aria-hidden="true">${artHtml(stampArt(n),0)}</span>`;}
   const rw=s.reward||"";
   h+=`<section style="display:flex;flex-direction:column;gap:8px"><div class="jarcap"><b>${+mm}월의 병</b><span class="small muted">칭찬 도장 ${Math.min(st.length,PER)} / ${PER}</span></div>
     <div class="board">${slots}<div class="plaque">${yy}. ${mm}. ${dd}</div></div>
