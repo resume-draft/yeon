@@ -323,8 +323,7 @@ function vToday(){
   // signal
   if(role==="pet"){
     h+=`<section class="card"><div class="hd"><h2>오늘 내 컨디션</h2>${s.signal_at?`<span class="small muted">${ago(s.signal_at)}</span>`:""}</div>
-      <div class="sig" role="group" aria-label="컨디션 신호등">${Object.entries(SIGNALS).map(([k,[n,d,c]])=>`<button data-sig="${k}" style="--c:${c}" aria-pressed="${s.signal===k}" aria-label="${d}"><i></i></button>`).join("")}</div>
-      <p class="small muted">빨강은 언제든 눌러도 돼요. 이유를 묻지 않기로 해요.</p></section>`;
+      <div class="sig" role="group" aria-label="컨디션 신호등">${Object.entries(SIGNALS).map(([k,[n,d,c]])=>`<button data-sig="${k}" style="--c:${c}" aria-pressed="${s.signal===k}" aria-label="${d}"><i></i></button>`).join("")}</div></section>`;
   }else{
     h+=`<section class="card${s.signal==="red"?" alert":""}"><span class="lbl">연이의 컨디션</span>${sig?`<div class="sigview" style="--c:${sig[2]}" role="img" aria-label="${sig[1]}"><i></i><p class="small muted">${ago(s.signal_at)}</p></div>`:`<p class="muted">아직 신호를 남기지 않았어요.</p>`}</section>`;
   }
