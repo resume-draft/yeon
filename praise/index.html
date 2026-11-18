@@ -317,8 +317,8 @@ function weekRow(o,mine){const ws=orderWeek(o),t=today(),c=checks(o);
     return`<button class="wd${d===t?" now":""}${fut?" fut":""}" data-wchk="${o.id}" data-date="${d}" aria-pressed="${on}" aria-label="${n}요일 ${on?"지킴":"아직"}" ${!mine||fut?"disabled":""}><i>${on?"✓":""}</i><span>${n}</span></button>`;}).join("")}</div>`;}
 const qIndex=d=>Math.floor(Date.parse(d+"T00:00:00Z")/864e5)%QUESTIONS.length;
 function monthStamps(ym){
-  const a=of("stamp").filter(e=>kday(e.at).slice(0,7)===ym).map(e=>({at:e.at,text:e.title}));
-  const b=data.reactions.filter(r=>r.kind==="stamp"&&kday(r.at).slice(0,7)===ym).map(r=>{const e=data.entries.find(x=>x.id===r.entry_id);return{at:r.at,text:e?`「${e.title}」에 찍은 도장`:"칭찬 도장"};});
+  const a=of("stamp").filter(e=>kday(e.at).slice(0,7)===ym).map(e=>({at:e.at,text:e.title,eid:e.id}));
+  const b=data.reactions.filter(r=>r.kind==="stamp"&&kday(r.at).slice(0,7)===ym).map(r=>{const e=data.entries.find(x=>x.id===r.entry_id);return{at:r.at,text:e?`「${e.title}」에 찍은 도장`:"칭찬 도장",rid:r.id};});
   return a.concat(b).sort((x,y)=>String(x.at).localeCompare(String(y.at)));
 }
 const feedTypes=["stamp","order","answer","note","practice","moment"];
@@ -364,7 +364,7 @@ function vToday(){
   const rw=s.reward||"";
   h+=`<section style="display:flex;flex-direction:column;gap:8px"><div class="jarcap"><b>${+mm}월의 병</b><span class="small muted">칭찬 도장 ${Math.min(st.length,PER)} / ${PER}</span></div>
     <div class="board">${slots}<div class="plaque">${yy}. ${mm}. ${dd}</div></div>
-    ${jarPeek!=null&&st[jarPeek]?`<div class="peek"><p>${esc(st[jarPeek].text)}<br><span class="small muted">${dayLabel(kday(st[jarPeek].at))}</span></p><button class="link" id="peekx">닫기</button></div>`:""}
+    ${jarPeek!=null&&st[jarPeek]?`<div class="peek"><p>${esc(st[jarPeek].text)}<br><span class="small muted">${dayLabel(kday(st[jarPeek].at))}</span>${role==="partner"?(ui.peekDel?` <span class="small">· 지울까요? <button class="danger" data-stampdel="${st[jarPeek].eid?"e:"+st[jarPeek].eid:"r:"+st[jarPeek].rid}">지우기</button> <button class="link" id="peekDelNo">아니요</button></span>`:` <button class="link small" style="color:var(--muted)" id="peekDel">지우기</button>`):""}</p><button class="link" id="peekx">닫기</button></div>`:""}
     ${ui.reward?`<form class="inl" id="rewardForm"><input class="field" maxlength="100" value="${esc(rw)}" placeholder="병이 다 차면 줄 보상" aria-label="보상"><button class="ghost">저장</button></form>`
       :(rw||role==="partner")?`<div class="reward"><p><span class="small">병이 다 차면</span><br>${rw?esc(rw):'<span class="muted">보상을 정해 주세요</span>'}</p>${role==="partner"?`<button class="link" id="rewardEdit">${rw?"바꾸기":"정하기"}</button>`:""}</div>`:""}
     ${role==="partner"?`<button class="btn" data-sheet="stamp">칭찬 도장 찍기</button>`:""}</section>`;
@@ -385,7 +385,7 @@ function entryCard(e){
   if(e.note&&t!=="answer")sub+=`<p class="sub">${esc(e.note)}</p>`;
   const hr=e.author==="pet"?"partner":"pet", hOn=hearts.some(r=>r.author===hr);
   let acts=(role===hr?`<button class="act h-${hr}" data-heart="${e.id}" aria-pressed="${hOn}" aria-label="하트">♥</button>`:hOn?`<span class="act h-${hr}" aria-pressed="true" aria-label="${NAME[hr]}의 하트">♥ <small>${NAME[hr]}</small></span>`:"")+`<button class="act" data-cmt="${e.id}">댓글</button>`;
-  if(role==="partner"&&e.author==="pet"&&t!=="order"&&t!=="answer"){const did=stamps.some(r=>r.author==="partner");acts+=`<button class="act" data-stamp="${e.id}" ${did?"disabled":""}><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${did?"찍음":"도장"}</button>`;}
+  if(role==="partner"&&e.author==="pet"&&t!=="order"&&t!=="answer"){const did=stamps.find(r=>r.author==="partner");acts+=did?`<button class="act" data-unstamp="${did.id}"><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> ${ui.unstamp===did.id?"취소할까요?":"찍음 · 취소"}</button>`:`<button class="act" data-stamp="${e.id}"><span class="mini-seal" style="width:14px;height:14px;vertical-align:-2px"></span> 도장</button>`;}
   const canEdit=e.author===role&&(t==="answer"||t==="note"||t==="practice"||t==="moment");
   if(canEdit&&!u.del)acts+=`<button class="link" style="margin-left:auto;color:var(--muted)" data-edit="${e.id}">고치기</button>`;
   if(e.author===role&&t!=="order")acts+=u.del?`<span class="small" style="margin-left:auto">지울까요? <button class="danger" data-delyes="${e.id}">지우기</button> <button class="link" data-delno="${e.id}">아니요</button></span>`:`<button class="link" style="margin-left:${canEdit?"4px":"auto"};color:var(--muted)" data-del="${e.id}">지우기</button>`;
@@ -512,8 +512,13 @@ document.addEventListener("click",async e=>{
   if(d.wchk){if(role!=="pet")return;const o=data.entries.find(x=>x.id===d.wchk);if(!o)return;const ex=checks(o).find(r=>r.value===d.date&&r.author==="pet");b.disabled=true;
     if(ex)await write({action:"removeReaction",id:ex.id});else{await write({action:"react",reaction:{entry_id:o.id,kind:"done",value:d.date}},"체크했어요");notify("partner","연이가 이번 주 지시를 지켰어요");}return;}
   if(d.cancel){if(!b.dataset.armed){b.dataset.armed=1;b.textContent="정말 거둘까요?";return;}await write({action:"removeEntry",id:d.cancel},"지시를 거뒀어요");return;}
-  if(d.jar!=null){jarPeek=jarPeek===+d.jar?null:+d.jar;render();return;}
-  if(b.id==="peekx"){jarPeek=null;render();return;}
+  if(d.jar!=null){jarPeek=jarPeek===+d.jar?null:+d.jar;ui.peekDel=false;render();return;}
+  if(b.id==="peekx"){jarPeek=null;ui.peekDel=false;render();return;}
+  if(b.id==="peekDel"){ui.peekDel=true;render();return;}
+  if(b.id==="peekDelNo"){ui.peekDel=false;render();return;}
+  if(d.stampdel){if(role!=="partner")return;const[k,id]=d.stampdel.split(":");b.disabled=true;jarPeek=null;ui.peekDel=false;
+    await write(k==="e"?{action:"removeEntry",id}:{action:"removeReaction",id},"칭찬 도장을 지웠어요");return;}
+  if(d.unstamp){if(ui.unstamp!==d.unstamp){ui.unstamp=d.unstamp;render();return;}ui.unstamp=null;b.disabled=true;await write({action:"removeReaction",id:d.unstamp},"도장을 취소했어요");return;}
   if(b.id==="rewardEdit"){ui.reward=true;render();return;}
   if(d.mode){logMode=d.mode;render();return;}
   if(d.day){calDay=calDay===d.day?"":d.day;render();return;}
