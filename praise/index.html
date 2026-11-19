@@ -488,7 +488,7 @@ function renderSheet(){
 /* ---------- render ---------- */
 // 30번째 도장: 선물 상자가 터지고 반짝이가 날려요 (기기마다 그달 한 번)
 function checkJar(){if(!ready||!key||!data||!data.entries)return;const ym=today().slice(0,7);if(monthStamps(ym).length<PER)return;
-  const k="pw2-full-"+ym;try{if(localStorage.getItem(k))return;localStorage.setItem(k,"1");}catch(e){if(checkJar.done===ym)return;checkJar.done=ym;}
+  const t30=monthStamps(ym)[PER-1],k="pw2-full-"+ym+"-"+(t30.eid||t30.rid);try{if(localStorage.getItem(k))return;localStorage.setItem(k,"1");}catch(e){if(checkJar.done===k)return;checkJar.done=k;}
   celebrate();}
 function celebrate(){if(document.getElementById("party"))return;const rw=(data.settings||{}).reward||"";
   const el=document.createElement("div");el.id="party";el.setAttribute("role","dialog");el.setAttribute("aria-label","유리병이 다 찼어요");
