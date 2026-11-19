@@ -496,7 +496,7 @@ function celebrate(){if(document.getElementById("party"))return;const rw=(data.s
   for(let i=0;i<46;i++){const a=Math.random()*Math.PI*2,r=34+Math.random()*30,dx=Math.cos(a)*r,dy=Math.sin(a)*r-12,d=(Math.random()*.35).toFixed(2),sz=(16+Math.random()*16)|0,rot=((Math.random()*720)-360)|0;
     conf+=`<i style="--dx:${dx.toFixed(1)}vmin;--dy:${dy.toFixed(1)}vmin;--rot:${rot}deg;animation-delay:${(1.05+ +d).toFixed(2)}s;font-size:${sz}px">${bits[i%bits.length]}</i>`;}
   el.innerHTML=`<div class="pbg"></div><div class="pbox"><span class="gift">🎁</span><span class="burst"></span></div><div class="conf">${conf}</div>
-    <div class="pmsg"><b>30개 다 모았어요!</b><p>이번 달 유리병이 가득 찼어요 🎉</p>${rw?`<p class="prw"><span class="small">보상</span><br>${esc(rw)}</p>`:""}<button class="btn" id="partyClose">고마워요</button></div>`;
+    <div class="pmsg"><b>30개 다 모았어요!</b><p>이번 달 유리병이 가득 찼어요 🎉</p>${rw?`<p class="prw"><span class="small">보상</span><br>${esc(rw)}</p>`:""}<button class="btn" id="partyClose">기특강아지</button></div>`;
   document.body.appendChild(el);const close=()=>{el.classList.add("out");setTimeout(()=>el.remove(),350);};
   el.addEventListener("click",e=>{if(e.target.id==="partyClose"||e.target.classList.contains("pbg"))close();});
   try{navigator.vibrate&&navigator.vibrate([30,60,30]);}catch(e){}}
