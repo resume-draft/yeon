@@ -214,7 +214,7 @@ span.act small{font-size:11px;margin-left:2px}
 .pill.me{border:0;font:inherit;cursor:pointer}
 .boot{position:fixed;inset:0;z-index:100;background:#FEF8EC;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
 .boot.out{opacity:0;pointer-events:none}
-.bootimg{position:relative;width:min(100vw,calc(100vh * 1408 / 2848));width:min(100vw,calc(100dvh * 1408 / 2848));aspect-ratio:1408/2848}
+.bootimg{position:relative;width:min(100vw,calc(100vh * 1408 / 3040));width:min(100vw,calc(100dvh * 1408 / 3040));aspect-ratio:1408/3040}
 .bootimg img{display:block;width:100%;height:100%}
 .bootimg i{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(254,248,236,.9) 52%,rgba(254,248,236,0) 72%);animation:veil 1.2s ease-in-out infinite}
 .bootimg i:nth-child(3){animation-delay:.2s}.bootimg i:nth-child(4){animation-delay:.4s}
@@ -250,11 +250,11 @@ span.act small{font-size:11px;margin-left:2px}
 </style>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-<link rel="preload" as="image" href="splash.webp?v=5" fetchpriority="high">
+<link rel="preload" as="image" href="splash.webp?v=6" fetchpriority="high">
 <link rel="preload" as="image" href="board.webp?v=3">
 </head>
 <body>
-<div class="boot" id="boot" role="status" aria-label="Pawprints 불러오는 중"><div class="bootimg"><img src="splash.webp?v=5" alt="" fetchpriority="high" decoding="async"><i style="left:35.5%;top:10.2%"></i><i style="left:50%;top:7.6%"></i><i style="left:64.3%;top:10.2%"></i></div></div>
+<div class="boot" id="boot" role="status" aria-label="Pawprints 불러오는 중"><div class="bootimg"><img src="splash.webp?v=6" alt="" fetchpriority="high" decoding="async"><i style="left:35.6%;top:16.4%"></i><i style="left:50%;top:14.1%"></i><i style="left:64.3%;top:16.4%"></i></div></div>
 <div class="wrap" id="app"></div>
 <button class="fab" id="fab" hidden><i></i><span id="fabTxt">한 줄 남기기</span></button>
 <nav class="nav" id="nav" hidden aria-label="메뉴"><div class="in">
