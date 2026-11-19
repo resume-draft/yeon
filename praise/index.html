@@ -108,6 +108,7 @@ textarea.field{min-height:70px;resize:vertical}
 .slot.on::before{content:"";position:absolute;inset:3%;border-radius:50%;background:#FFFDF8}
 .board{container-type:inline-size}
 .ill{position:absolute;inset:21%;background:center/contain no-repeat}
+.ill.paw{background:#8C7466;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
 .slot.sp{z-index:2}
 .slot.sp .ill{inset:21%}
 .emo{position:absolute;inset:0;display:grid;place-items:center;font-size:4.6cqw;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
@@ -274,7 +275,7 @@ const STAMP_SPECIAL=["bear","rabbit","chick","frog"], HEARTS=["💓","💗","�
 const stampArt=n=>{if(n%5)return{img:"stamp-paw.webp?v=2"};
   if(STAMP_MODE==="hearts")return n===30?{img:"stamp-bear.webp?v=1"}:{emo:HEARTS[(n/5-1)%HEARTS.length]};
   return{img:`stamp-${STAMP_SPECIAL[(n/5-1)%STAMP_SPECIAL.length]}.webp?v=1`};};
-const artHtml=(a,rot)=>a.img?`<span class="ill" style="background-image:url(${a.img});transform:rotate(${rot}deg)"></span>`:`<span class="emo" style="transform:rotate(${rot}deg)">${a.emo}</span>`;
+const artHtml=(a,rot)=>a.img?(a.img.startsWith("stamp-paw")?`<span class="ill paw" style="-webkit-mask-image:url(${a.img});mask-image:url(${a.img});transform:rotate(${rot}deg)"></span>`:`<span class="ill" style="background-image:url(${a.img});transform:rotate(${rot}deg)"></span>`):`<span class="emo" style="transform:rotate(${rot}deg)">${a.emo}</span>`;
 const loadImg=src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src=src;});
 const boardReady=Promise.all([loadImg("board.webp?v=3"),...(STAMP_MODE==="hearts"?["paw","bear"]:["paw",...STAMP_SPECIAL]).map(k=>loadImg(`stamp-${k}.webp?v=${k==="paw"?2:1}`))]);
 const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve();
