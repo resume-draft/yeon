@@ -152,6 +152,8 @@ span.act small{font-size:11px;margin-left:2px}
 .cmts{display:flex;flex-direction:column;gap:4px;border-top:1px dashed var(--line);padding-top:6px}
 .cmts p{font-size:13.5px;overflow-wrap:anywhere}
 .cmts b{font-weight:400;color:var(--muted);font-size:12px;margin-right:4px}
+.cdel{border:0;background:none;padding:0 0 0 8px;font-size:11.5px;color:#B9A99B;text-decoration:underline;text-underline-offset:2px}
+.cdel.armed{color:#C9503F;font-weight:600}
 
 /* calendar */
 .calhead{display:flex;align-items:center;justify-content:space-between}
@@ -436,7 +438,7 @@ function entryCard(e){
   if(u.edit)body=editForm(e);
   return`<article class="ent"><div class="hd"><span class="tag ${t}">${label}</span><span>${t==="order"?"주인님":NAME[e.author]} · ${fmtTime.format(new Date(e.at))}</span>${stamps.length?`<span class="mini-seal" title="칭찬 도장"></span>`:""}</div>
     ${body}${sub}
-    ${cm.length?`<div class="cmts">${cm.map(c=>`<p><b>${NAME[c.author]}</b>${esc(c.value)}</p>`).join("")}</div>`:""}
+    ${cm.length?`<div class="cmts">${cm.map(c=>`<p><b>${NAME[c.author]}</b>${esc(c.value)}${c.author===role?`<button class="cdel" data-cdel="${c.id}">지우기</button>`:""}</p>`).join("")}</div>`:""}
     <div class="acts">${acts}</div>
     ${u.cmt?`<form class="inl" data-cmtform="${e.id}"><input class="field" maxlength="120" placeholder="댓글" aria-label="댓글"><button class="ghost">보내기</button></form>`:""}</article>`;
 }
@@ -596,6 +598,7 @@ document.addEventListener("click",async e=>{
   if(d.delno){ui[d.delno]={};render();return;}
   if(d.delyes){await write({action:"removeEntry",id:d.delyes},"지웠어요");return;}
   if(d.rulefor){ui.ruleFor=d.rulefor;document.querySelectorAll("[data-rulefor]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.rulefor===d.rulefor));return;}
+  if(d.cdel){if(b.dataset.armed){b.disabled=true;await write({action:"removeReaction",id:d.cdel},"댓글을 지웠어요");return;}b.dataset.armed="1";b.textContent="정말 지울까요?";b.classList.add("armed");setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="지우기";b.classList.remove("armed");}},3000);return;}
   if(d.okrule){await write({action:"star",id:d.okrule,on:true},"약속을 승인했어요");notify("pet","제안한 약속이 승인됐어요");return;}
   if(d.rmrule){await write({action:"removeEntry",id:d.rmrule},"뺐어요");return;}
   if(d.wish){const done=rx(d.wish,"done")[0];if(done)await write({action:"removeReaction",id:done.id});else await write({action:"react",reaction:{entry_id:d.wish,kind:"done",value:""}},"함께 해냈어요");return;}
