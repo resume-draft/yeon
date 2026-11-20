@@ -46,7 +46,6 @@ p{margin:0}
 
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:4px}
 .brand{font-family:var(--display);font-size:24px;display:flex;align-items:center;gap:6px}
-.brand img{display:block;height:48px;width:auto;margin:-4px 0}
 .brand i,.paw{display:inline-block;width:22px;height:22px;background:var(--stamp-ink);-webkit-mask:var(--paw) center/contain no-repeat;mask:var(--paw) center/contain no-repeat}
 .top .meta{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .dnum{font-family:var(--display);color:var(--accent);font-size:17px}
@@ -224,7 +223,7 @@ span.act small{font-size:11px;margin-left:2px}
 .boot.out{opacity:0;pointer-events:none}
 .bootimg{position:relative;width:min(100vw,calc(100vh * 1408 / 3040));width:min(100vw,calc(100dvh * 1408 / 3040));aspect-ratio:1408/3040}
 .bootimg img{display:block;width:100%;height:100%}
-.bootimg i{position:absolute;width:12%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(254,248,236,.9) 52%,rgba(254,248,236,0) 72%);animation:veil 1.2s ease-in-out infinite}
+.bootimg i{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(254,248,236,.9) 52%,rgba(254,248,236,0) 72%);animation:veil 1.2s ease-in-out infinite}
 .bootimg i:nth-child(3){animation-delay:.2s}.bootimg i:nth-child(4){animation-delay:.4s}
 @keyframes veil{0%,100%{opacity:1}35%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.bootimg i{animation:none;opacity:0}}
@@ -258,11 +257,11 @@ span.act small{font-size:11px;margin-left:2px}
 </style>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-<link rel="preload" as="image" href="splash.webp?v=7" fetchpriority="high">
+<link rel="preload" as="image" href="splash.webp?v=6" fetchpriority="high">
 <link rel="preload" as="image" href="board.webp?v=3">
 </head>
 <body>
-<div class="boot" id="boot" role="status" aria-label="Pawprints 불러오는 중"><div class="bootimg"><img src="splash.webp?v=7" alt="" fetchpriority="high" decoding="async"><i style="left:35.2%;top:15%"></i><i style="left:51.7%;top:14.1%"></i><i style="left:66.6%;top:17%"></i></div></div>
+<div class="boot" id="boot" role="status" aria-label="Pawprints 불러오는 중"><div class="bootimg"><img src="splash.webp?v=6" alt="" fetchpriority="high" decoding="async"><i style="left:35.6%;top:16.4%"></i><i style="left:50%;top:14.1%"></i><i style="left:64.3%;top:16.4%"></i></div></div>
 <div class="wrap" id="app"></div>
 <button class="fab" id="fab" hidden><i></i><span id="fabTxt">한 줄 남기기</span></button>
 <nav class="nav" id="nav" hidden aria-label="메뉴"><div class="in">
@@ -304,7 +303,7 @@ const stampArt=n=>{if(n%5)return{img:"stamp-paw.webp?v=2"};
   return{img:`stamp-${STAMP_SPECIAL[(n/5-1)%STAMP_SPECIAL.length]}.webp?v=1`};};
 const artHtml=(a,rot)=>a.img?(a.img.startsWith("stamp-paw")?`<span class="ill paw" style="-webkit-mask-image:url(${a.img});mask-image:url(${a.img});transform:rotate(${rot}deg)"></span>`:`<span class="ill" style="background-image:url(${a.img});transform:rotate(${rot}deg)"></span>`):`<span class="emo" style="transform:rotate(${rot}deg)">${a.emo}</span>`;
 const loadImg=src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=()=>res();im.src=src;});
-const boardReady=Promise.all([loadImg("board.webp?v=3"),loadImg("logo-head.webp?v=1"),...(STAMP_MODE==="hearts"?["paw","bear"]:["paw",...STAMP_SPECIAL]).map(k=>loadImg(`stamp-${k}.webp?v=${k==="paw"?2:1}`))]);
+const boardReady=Promise.all([loadImg("board.webp?v=3"),...(STAMP_MODE==="hearts"?["paw","bear"]:["paw",...STAMP_SPECIAL]).map(k=>loadImg(`stamp-${k}.webp?v=${k==="paw"?2:1}`))]);
 const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve();
 const T0=Date.now();
 function bootShow(){ready=false;const b=$("boot");if(b){b.hidden=false;b.classList.remove("out");}clearTimeout(markReady._t);markReady._t=setTimeout(markReady,8000);}
@@ -518,7 +517,7 @@ function render(){
     if(gateWho){const i=$("gateIn");if(i)i.focus();}return;}
   $("nav").hidden=false;$("fab").hidden=false;$("fabTxt").textContent=role==="partner"?"도장 · 한 줄":"한 줄 남기기";
   const n=data.settings.start?dayDiff(data.settings.start,today())+1:null;
-  const top=`<header class="top"><div class="brand"><img src="logo-head.webp?v=1" alt="Pawprints" width="92" height="48"></div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${RO[role]} 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
+  const top=`<header class="top"><div class="brand"><i></i>Pawprints</div><div class="meta">${n?`<span class="dnum">D+${n}</span>`:""}<button class="pill me" id="switchMe" aria-label="${RO[role]} 들어와 있어요. 눌러서 나가기">${NAME[role]} ⇄</button></div></header>`;
   const keep=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("form")?null:null;
   $("app").innerHTML=top+(view==="log"?vLog():view==="us"?vUs():vToday());
   document.querySelectorAll(".nav a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===view?"page":"false"));
