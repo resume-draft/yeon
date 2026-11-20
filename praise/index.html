@@ -173,7 +173,13 @@ span.act small{font-size:11px;margin-left:2px}
 .li .t.done{text-decoration:line-through;color:var(--muted)}
 .check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:var(--bg);flex:none;display:grid;place-items:center;font-size:13px;padding:0}
 .check[aria-pressed="true"]{background:var(--sage);border-color:var(--sage)}
-.ntag{display:inline-block;font-size:11px;line-height:1.5;border-radius:99px;padding:0 7px;margin-right:6px;vertical-align:1px;background:#F8DCD6;color:#C9503F;font-weight:600}
+.ntag{display:inline-block;font-size:11px;line-height:1.5;border-radius:99px;padding:0 7px;margin-right:6px;vertical-align:1px;font-weight:600}
+.nt-pet{background:#F8DCD6;color:#C9503F}.nt-partner{background:#D3EBEF;color:#2E8597}.nt-us{background:#F1E6DA;color:#8C7466}
+.rseg{margin:12px 0 8px}
+.rseg button[aria-pressed="true"]{box-shadow:0 1px 2px rgba(91,59,42,.15);font-weight:600}
+.rseg .sg-pet[aria-pressed="true"]{background:#F8DCD6;color:#C9503F}
+.rseg .sg-partner[aria-pressed="true"]{background:#D3EBEF;color:#2E8597}
+.rseg .sg-us[aria-pressed="true"]{background:#FFFDF8;color:#8C7466}
 .badge{font-size:11px;border-radius:99px;padding:1px 7px;background:var(--soft);color:var(--muted);white-space:nowrap}
 .shelf{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
 .minijar{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;min-width:70px}
@@ -451,12 +457,14 @@ function vLog(){
 }
 
 /* ---------- 우리 ---------- */
+const TAGN={pet:"연이",partner:"주인님",us:"우리"};
+const ruleTag=r=>{const k=String(r.tags||"").split("|")[0];return TAGN[k]?`<span class="ntag nt-${k}">${TAGN[k]}</span>`:"";};
 function vUs(){
   const rules=of("rule"), ok=rules.filter(r=>r.special==="1"), pend=rules.filter(r=>r.special!=="1");
   let h=`<h2>우리</h2><section class="card"><h3>우리의 약속</h3>
-    ${ok.length?`<div>${ok.map(r=>`<div class="li"><span class="t">${r.author==="pet"?`<span class="ntag">연이</span>`:""}${esc(r.title)}</span>${role==="partner"?`<button class="link" style="color:var(--muted)" data-rmrule="${r.id}">빼기</button>`:""}</div>`).join("")}</div>`:`<p class="empty">아직 정한 약속이 없어요.</p>`}
-    ${pend.length?`<span class="lbl">연이의 제안</span>${pend.map(r=>`<div class="li"><span class="t">${r.author==="pet"?`<span class="ntag">연이</span>`:""}${esc(r.title)}</span>${role==="partner"?`<button class="link" data-okrule="${r.id}">승인</button><button class="link" style="color:var(--muted)" data-rmrule="${r.id}">거절</button>`:`<span class="badge">검토 중</span>`}</div>`).join("")}`:""}
-    <form class="inl" id="ruleForm"><input class="field" maxlength="120" placeholder="${role==="partner"?"새 약속 추가":"약속 제안하기"}" aria-label="약속"><button class="ghost">${role==="partner"?"추가":"제안"}</button></form></section>`;
+    ${ok.length?`<div>${ok.map(r=>`<div class="li"><span class="t">${ruleTag(r)}${esc(r.title)}</span>${role==="partner"?`<button class="link" style="color:var(--muted)" data-rmrule="${r.id}">빼기</button>`:""}</div>`).join("")}</div>`:`<p class="empty">아직 정한 약속이 없어요.</p>`}
+    ${pend.length?`<span class="lbl">연이의 제안</span>${pend.map(r=>`<div class="li"><span class="t">${ruleTag(r)}${esc(r.title)}</span>${role==="partner"?`<button class="link" data-okrule="${r.id}">승인</button><button class="link" style="color:var(--muted)" data-rmrule="${r.id}">거절</button>`:`<span class="badge">검토 중</span>`}</div>`).join("")}`:""}
+    <div class="seg rseg" role="group" aria-label="누구의 약속">${["pet","partner","us"].map(k=>`<button type="button" class="sg-${k}" data-rulefor="${k}" aria-pressed="${(ui.ruleFor||"us")===k}">${TAGN[k]}</button>`).join("")}</div><form class="inl" id="ruleForm"><input class="field" maxlength="120" placeholder="${role==="partner"?"새 약속 추가":"약속 제안하기"}" aria-label="약속"><button class="ghost">${role==="partner"?"추가":"제안"}</button></form></section>`;
   // wishes
   const ws=of("wish").slice().reverse();
   h+=`<section class="card"><h3>함께 하고 싶은 것</h3>${ws.map(w=>{const d=rx(w.id,"done")[0];return`<div class="li"><button class="check" data-wish="${w.id}" aria-pressed="${!!d}" aria-label="${d?"완료 취소":"완료"}">${d?"✓":""}</button><span class="t${d?" done":""}">${esc(w.title)}</span><button class="link" style="color:var(--muted)" data-rmwish="${w.id}">빼기</button></div>`;}).join("")||`<p class="empty">같이 해보고 싶은 걸 적어 두세요.</p>`}
@@ -540,7 +548,7 @@ document.addEventListener("submit",async e=>{
   if(f.id==="rewardForm"){await write({action:"setSetting",k:"reward",v:val()},"보상을 정했어요");ui.reward=false;render();return;}
   if(f.dataset.editform){const v=val();if(!v)return;const id=f.dataset.editform;await write({action:"updateEntry",id,entry:{title:v}},"고쳤어요");ui[id]={};render();return;}
   if(f.dataset.cmtform){const v=val();if(!v)return;const id=f.dataset.cmtform;await write({action:"react",reaction:{entry_id:id,kind:"comment",value:v}});ui[id]={};render();notify(other(),"새 댓글이 있어요");return;}
-  if(f.id==="ruleForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"rule",title:v}},role==="partner"?"약속을 추가했어요":"약속을 제안했어요");notify(other(),role==="partner"?"새 약속이 생겼어요":"약속 제안이 왔어요");return;}
+  if(f.id==="ruleForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"rule",title:v,tags:[ui.ruleFor||"us"]}},role==="partner"?"약속을 추가했어요":"약속을 제안했어요");notify(other(),role==="partner"?"새 약속이 생겼어요":"약속 제안이 왔어요");return;}
   if(f.id==="drawerForm"){const v=val();if(!v)return;await write({action:"setGoal",goal:{name:v}},"서랍에 넣었어요");return;}
   if(f.id==="wishForm"){const v=val();if(!v)return;await write({action:"addEntry",entry:{type:"wish",title:v}},"추가했어요");return;}
   if(f.id==="startForm"){const v=val();if(!v)return;await write({action:"setSetting",k:"start",v},"저장했어요");return;}
@@ -587,6 +595,7 @@ document.addEventListener("click",async e=>{
   if(d.editno){ui[d.editno]={};render();return;}
   if(d.delno){ui[d.delno]={};render();return;}
   if(d.delyes){await write({action:"removeEntry",id:d.delyes},"지웠어요");return;}
+  if(d.rulefor){ui.ruleFor=d.rulefor;document.querySelectorAll("[data-rulefor]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.rulefor===d.rulefor));return;}
   if(d.okrule){await write({action:"star",id:d.okrule,on:true},"약속을 승인했어요");notify("pet","제안한 약속이 승인됐어요");return;}
   if(d.rmrule){await write({action:"removeEntry",id:d.rmrule},"뺐어요");return;}
   if(d.wish){const done=rx(d.wish,"done")[0];if(done)await write({action:"removeReaction",id:done.id});else await write({action:"react",reaction:{entry_id:d.wish,kind:"done",value:""}},"함께 해냈어요");return;}
