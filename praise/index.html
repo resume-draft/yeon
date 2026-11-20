@@ -173,6 +173,7 @@ span.act small{font-size:11px;margin-left:2px}
 .li .t.done{text-decoration:line-through;color:var(--muted)}
 .check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:var(--bg);flex:none;display:grid;place-items:center;font-size:13px;padding:0}
 .check[aria-pressed="true"]{background:var(--sage);border-color:var(--sage)}
+.ntag{display:inline-block;font-size:11px;line-height:1.5;border-radius:99px;padding:0 7px;margin-right:6px;vertical-align:1px;background:#F8DCD6;color:#C9503F;font-weight:600}
 .badge{font-size:11px;border-radius:99px;padding:1px 7px;background:var(--soft);color:var(--muted);white-space:nowrap}
 .shelf{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
 .minijar{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;min-width:70px}
@@ -453,8 +454,8 @@ function vLog(){
 function vUs(){
   const rules=of("rule"), ok=rules.filter(r=>r.special==="1"), pend=rules.filter(r=>r.special!=="1");
   let h=`<h2>우리</h2><section class="card"><h3>우리의 약속</h3>
-    ${ok.length?`<div>${ok.map(r=>`<div class="li"><span class="t">${esc(r.title)}</span>${role==="partner"?`<button class="link" style="color:var(--muted)" data-rmrule="${r.id}">빼기</button>`:""}</div>`).join("")}</div>`:`<p class="empty">아직 정한 약속이 없어요.</p>`}
-    ${pend.length?`<span class="lbl">연이의 제안</span>${pend.map(r=>`<div class="li"><span class="t">${esc(r.title)}</span>${role==="partner"?`<button class="link" data-okrule="${r.id}">승인</button><button class="link" style="color:var(--muted)" data-rmrule="${r.id}">거절</button>`:`<span class="badge">검토 중</span>`}</div>`).join("")}`:""}
+    ${ok.length?`<div>${ok.map(r=>`<div class="li"><span class="t">${r.author==="pet"?`<span class="ntag">연이</span>`:""}${esc(r.title)}</span>${role==="partner"?`<button class="link" style="color:var(--muted)" data-rmrule="${r.id}">빼기</button>`:""}</div>`).join("")}</div>`:`<p class="empty">아직 정한 약속이 없어요.</p>`}
+    ${pend.length?`<span class="lbl">연이의 제안</span>${pend.map(r=>`<div class="li"><span class="t">${r.author==="pet"?`<span class="ntag">연이</span>`:""}${esc(r.title)}</span>${role==="partner"?`<button class="link" data-okrule="${r.id}">승인</button><button class="link" style="color:var(--muted)" data-rmrule="${r.id}">거절</button>`:`<span class="badge">검토 중</span>`}</div>`).join("")}`:""}
     <form class="inl" id="ruleForm"><input class="field" maxlength="120" placeholder="${role==="partner"?"새 약속 추가":"약속 제안하기"}" aria-label="약속"><button class="ghost">${role==="partner"?"추가":"제안"}</button></form></section>`;
   // wishes
   const ws=of("wish").slice().reverse();
